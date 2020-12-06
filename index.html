@@ -181,6 +181,8 @@ Error message and password prompt
 
 <li>$:/plugins/BTC/Muuri</li>
 
+<li>$:/plugins/BTC/Muuri/modules/storyviews/muuri.js</li>
+
 <li>$:/plugins/tiddlywiki/codemirror</li>
 
 <li>$:/plugins/tiddlywiki/codemirror-autocomplete</li>
@@ -539,6 +541,8 @@ Error message and password prompt
 
 <li>CSS</li>
 
+<li>done-list</li>
+
 <li>El jardin de las Delicias</li>
 
 <li>eventual muuri styles</li>
@@ -557,6 +561,18 @@ Error message and password prompt
 
 <li>imagetemplate</li>
 
+<li>Kanban Demo</li>
+
+<li>Kanban Demo Done</li>
+
+<li>Kanban Demo Styles</li>
+
+<li>Kanban Demo Todo</li>
+
+<li>Kanban Demo Working</li>
+
+<li>kanban-list</li>
+
 <li>Mona Lisa</li>
 
 <li>New Tiddler</li>
@@ -572,6 +588,10 @@ Error message and password prompt
 <li>The Kiss</li>
 
 <li>This Louvre moment</li>
+
+<li>todo-list</li>
+
+<li>working-list</li>
 
 </ul>
 </p>
@@ -10597,6 +10617,668 @@ Error message and password prompt
     }
 }</pre>
 </div>
+<div created="20200823113928572" modified="20201206074252752" module-type="storyview" tags="" title="$:/plugins/BTC/Muuri/modules/storyviews/muuri.js" type="application/javascript">
+<pre>/*\
+title: $:/plugins/BTC/Muuri/modules/storyviews/muuri.js
+type: application/javascript
+module-type: storyview
+
+Views the story as a muuri grid
+
+\*/
+(function() {
+
+/*jslint node: true, browser: true */
+/*global $tw: false */
+&quot;use strict&quot;;
+
+var easing = &quot;cubic-bezier(0.215, 0.61, 0.355, 1)&quot;;
+
+var COLUMN_CONFIG = &quot;$:/state/config/muuri/storyview/columns&quot;,
+		SEAMLESS_CONFIG = &quot;$:/config/muuri/storyview/fill-gaps&quot;,
+		ALIGNRIGHT_CONFIG = &quot;$:/state/config/muuri/storyview/align-right&quot;,
+		ALIGNBOTTOM_CONFIG = &quot;$:/state/config/muuri/storyview/align-bottom&quot;,
+		DRAGSORTACTION_CONFIG = &quot;$:/config/muuri/storyview/dragsort-action&quot;,
+		DRAGSORTTHRESHOLD_CONFIG =&quot;$:/config/muuri/storyview/dragsort-threshold&quot;,
+		SELECTTEXT_CONFIG = &quot;$:/state/config/muuri/storyview/select-text&quot;;
+
+if(typeof window !== &quot;undefined&quot;) {
+	var testElement = document.body;
+	if(typeof testElement.animate !== &quot;function&quot; &amp;&amp; typeof testElement.animate !== &quot;FUNCTION&quot;) {
+		require(&quot;$:/plugins/BTC/Muuri/library/web-animations-polyfill.js&quot;);
+	}
+	if(!window.Muuri) {
+		window.Muuri = require(&quot;$:/plugins/BTC/Muuri/library/muuri.min.js&quot;);
+	}
+	if($tw.Grids === undefined) {
+		$tw.Grids = [];
+	}
+}
+
+var MuuriStoryView = function(listWidget) {
+	var self = this;
+	this.listWidget = listWidget;
+	this.itemTitlesArray = [];
+	this.connectedGrids = [];
+
+	this.getMuuriAttributes();
+	this.createMuuriGrid();
+	
+	this.addToGlobalGrids();
+
+	this.muuri.on(&quot;dragReleaseEnd&quot;,function(item) {
+		self.onDragReleaseEnd(item);
+	})
+	.on(&quot;add&quot;, function(items) {
+	})
+	.on(&quot;remove&quot;, function(items) {
+	})
+	.on(&quot;dragEnd&quot;, function(item, event) {
+		self.restoreIframeEvents();
+	})
+	.on(&quot;dragStart&quot;, function(item, event) {
+		self.findConnectedGrids();
+	})
+	.on(&quot;layoutStart&quot;, function() {
+	})
+	.on(&quot;layoutEnd&quot;, function() {
+		self.updateZIndexList();
+	})
+	.on(&quot;destroy&quot;, function() {
+		self.removeFromGlobalGrids();
+		self.removeAllListeners();
+	})
+	.on(&quot;dragInit&quot;,function(item, event) {
+		//add pointer-events: none; to all iframes
+		self.inheritIframeEvents();
+	})
+	.on(&quot;send&quot;, function(data) {
+	})
+	.on(&quot;receive&quot;, function(data) {
+	})
+	.on(&quot;beforeSend&quot;, function(data) {
+	})
+	.on(&quot;beforeReceive&quot;, function(data) {
+	});
+};
+
+MuuriStoryView.prototype.findConnectedGrids = function() {
+	var self = this,
+		connectedGrids = this.listWidget.document.documentElement.querySelectorAll(this.connectedGridsSelector),
+			newConnectedGrids = [];
+	if(connectedGrids.length &gt; 0) {
+		for(var i=0; i&lt;$tw.Grids.length; i++) {
+			for(var k=0; k&lt;connectedGrids.length; k++) {
+				if($tw.Grids[i]._element === connectedGrids[k]) {
+					$tw.utils.pushTop(newConnectedGrids,$tw.Grids[i]);
+				}
+			}
+		}
+		$tw.utils.pushTop(newConnectedGrids,this.muuri);
+		this.connectedGrids = newConnectedGrids;
+	} else {
+		this.connectedGrids = [this.muuri];
+	}
+};
+
+MuuriStoryView.prototype.addToGlobalGrids = function() {
+	$tw.utils.pushTop($tw.Grids,this.muuri);
+	var globalGridElements = this.listWidget.document.documentElement.querySelectorAll('[data-grid=&quot;muuri&quot;]');
+	for(var i=0; i&lt;$tw.Grids.length; i++) {
+		var globalGrid = $tw.Grids[i],
+				foundGrid = false;
+		for(var k=0; k&lt;globalGridElements.length; k++) {
+			var globalGridElement = globalGridElements[k];
+			if(globalGrid._element === globalGridElement) {
+				foundGrid = true;
+			}
+		}
+		if(!foundGrid) {
+			$tw.Grids.splice(i,1);
+		}
+	}
+};
+
+MuuriStoryView.prototype.removeFromGlobalGrids = function() {
+	for(var i=0; i&lt;$tw.Grids.length; i++) {
+		var grid = $tw.Grids[i];
+		if(grid._element === this.muuri._element) {
+			$tw.Grids.splice(i,1);
+		}
+	}
+};
+
+MuuriStoryView.prototype.updateZIndexList = function(options) {
+	var self = this;
+	if(this.zIndexTiddler) {
+		options = options || {};
+		//do something that updates z-indices
+		this.muuri.refreshItems(); //important
+		var items = this.muuri.getItems();
+		var itemColumns = [];
+		var sortedArray = [];
+		//get the x-coordinates for each column
+		for(var i=0; i&lt;items.length; i++) {
+			var itemColumnsValue = items[i]._left !== null &amp;&amp; items[i]._left !== undefined ? items[i]._left : items[i]._layout._currentLeft;
+			if(itemColumns.indexOf(itemColumnsValue) === -1) {
+				itemColumns.push(itemColumnsValue);
+			}
+		}
+		//sort the columns left-to-right
+		itemColumns.sort(function(valueA,valueB) {
+			if(valueA &gt;= valueB) return 1;
+			if(valueA &lt; valueB) return -1;
+			return 0;
+		});
+		//now for each column, get the items that are members of it,
+		//push to a temporary array
+		//sort the temp array items so that by their _currentTop lowest to highest
+		//push the sorted items to the final sortedItems array
+		$tw.utils.each(itemColumns,function(columnValue) {
+			var columnMembers = [];
+			for(var k=0; k&lt;items.length; k++) {
+				var currLeft = items[k]._left !== null &amp;&amp; items[k]._left !== undefined ? items[k]._left : items[k]._layout._currentLeft;
+				if(currLeft === columnValue || (currLeft &gt;= (columnValue - 5) &amp;&amp; currLeft &lt;= columnValue)) {
+					// there's a small variation when item positions have not yet been fully
+					// refreshed after they've moved ... some pixels, though they're still in
+					// the same column
+					// because of the min-width on tiddlers, 5px should be ok
+					columnMembers.push(items[k]);
+				}
+			}
+			columnMembers.sort(function(itemA,itemB) {
+				var valueA = itemA._layout._currentTop !== null &amp;&amp; itemA._layout._currentTop !== undefined ? itemA._layout._currentTop : itemA._top,
+					valueB = itemB._layout._currentTop !== null &amp;&amp; itemB._layout._currentTop !== undefined ? itemB._layout._currentTop : itemB._top;
+				if(valueA &gt;= valueB) return 1;
+				if(valueA &lt; valueB) return -1;
+				return 0;
+			});
+			for(k=0; k&lt;columnMembers.length; k++) {
+				var itemTitle = self.getItemTitle(columnMembers[k]);
+				sortedArray.push(itemTitle);
+			}
+		});
+		//store the array in a tiddler-list that's used for applying z-indices
+		var tiddler = this.listWidget.wiki.getTiddler(this.zIndexTiddler);
+		this.listWidget.wiki.addTiddler(new $tw.Tiddler(
+			this.listWidget.wiki.getCreationFields(),
+			{title: this.zIndexTiddler},
+			tiddler,
+			{list: sortedArray},
+			this.listWidget.wiki.getModificationFields()
+		));
+	}
+};
+
+MuuriStoryView.prototype.restoreIframeEvents = function() {
+	if(this.iframePointerEventStyle !== undefined) {
+		var iframes = this.listWidget.document.querySelectorAll(&quot;iframe&quot;);
+		for(var i=0; i&lt;iframes.length; i++) {
+			iframes[i].style[&quot;pointer-events&quot;] = this.iframePointerEventStyle;
+		}
+		this.iframePointerEventStyle = undefined;
+	}
+};
+
+MuuriStoryView.prototype.inheritIframeEvents = function() {
+	var iframes = this.listWidget.document.querySelectorAll(&quot;iframe&quot;);
+	for(var i=0; i&lt;iframes.length; i++) {
+		if(iframes[i]) {
+			if(this.iframePointerEventStyle === undefined) {
+				this.iframePointerEventStyle = iframes[i].style[&quot;pointer-events&quot;];
+			}
+			iframes[i].style[&quot;pointer-events&quot;] = &quot;none&quot;;
+		}
+	}
+};
+
+MuuriStoryView.prototype.removeAllListeners = function() {
+	var items = this.muuri.getItems();
+	for(var i=0; i&lt;items.length; i++) {
+		var element = items[i].getElement();
+		this.removeResizeListener(element,function() {
+			self.refreshMuuriGrid();
+		});
+	}
+};
+
+MuuriStoryView.prototype.refreshItemTitlesArray = function() {
+	this.muuri.refreshItems();
+	this.findConnectedGrids();
+	var items = this.muuri.getItems(),
+			muuriItems = [];
+	this.itemTitlesArray = [];
+	for(var i=0; i&lt;items.length; i++) {
+		if(items[i]._width !== 0 &amp;&amp; items[i]._height !== 0) {
+			this.itemTitlesArray.push(this.getItemTitle(items[i]));
+			muuriItems.push(items[i]);
+		}
+	}
+	this.muuri._items = muuriItems;
+	items = this.muuri.getItems();
+	for(i=0; i&lt;items.length; i++) {
+		items[i]._id = i;
+	}
+};
+
+MuuriStoryView.prototype.findListWidget = function(element) {
+	for(var i=0; i&lt;this.connectedGrids.length; i++) {
+		var listWidgetChildren = this.connectedGrids[i].listWidget.children;
+		//find the widget corresponding to this element
+		for(var k=0; k&lt;listWidgetChildren.length; k++) {
+			var listElement = listWidgetChildren[k] ? listWidgetChildren[k].findFirstDomNode() : null;
+			if(listElement &amp;&amp; (listElement === element)) {
+				return(listWidgetChildren[k]);
+			}
+		}
+	}
+	return null;
+};
+
+MuuriStoryView.prototype.getItemTitle = function(item) {
+	var element = item._element;
+	var widget = this.findListWidget(element);
+	return widget ? widget.parseTreeNode.itemTitle : null;
+};
+
+MuuriStoryView.prototype.onDragReleaseEnd = function(item) {
+	var items = this.muuri.getItems(),
+			isReleasing = false;
+	for (var i=0; i&lt;items.length; i++) {
+		if(items[i].isDragging() || items[i].isReleasing() || items[i].isShowing() || items[i].isHiding()) {
+			isReleasing = true;
+		}
+	}
+	this.findConnectedGrids();
+	if(isReleasing === false) {
+		for(i=0; i&lt;this.connectedGrids.length; i++) {
+			this.connectedGrids[i].synchronizeGrid();
+		}
+	}
+};
+
+MuuriStoryView.prototype.synchronizeGrid = function() {
+	this.refreshItemTitlesArray();
+	this.muuri.synchronize();
+	var hasChanged = false;
+	if(this.itemTitlesArray.length !== this.listWidget.list.length) {
+		hasChanged = true;
+	} else {
+		for(var i=0; i&lt;this.itemTitlesArray.length; i++) {
+			if(this.itemTitlesArray[i] !== this.listWidget.list[i]) {
+				hasChanged = true;
+				break;
+			}
+		}
+	}
+
+	if(hasChanged &amp;&amp; this.itemTitlesArray.indexOf(undefined) === -1 &amp;&amp; this.itemTitlesArray.indexOf(null) === -1) {
+		this.listWidget.wiki.setText(this.storyListTitle,this.storyListField,undefined,this.itemTitlesArray);
+	}
+};
+
+MuuriStoryView.prototype.getMuuriAttributes = function() {
+	this.animationDuration = $tw.utils.getAnimationDuration();
+	this.attachEvent = this.listWidget.document.attachEvent;
+	this.isIE = $tw.browser.isIE;
+	this.containerClass = this.listWidget.getAttribute(&quot;containerClass&quot;,&quot;tc-muuri-river&quot;);
+	this.rounding = true;
+	var itemClass = this.listWidget.getAttribute(&quot;itemClass&quot;,&quot;tc-tiddler-frame&quot;);
+	if(itemClass === &quot;&quot; || itemClass === &quot;*&quot;) {
+		this.itemSelector = &quot;*&quot;;
+		this.itemClass = &quot;tc-muuri-item&quot;;
+	} else {
+		var classes = itemClass.split(&quot; &quot;);
+		this.itemSelector = &quot;.&quot; + classes[0];
+		this.itemClass = classes[0];
+	}
+	this.connectedGridsSelector = this.listWidget.getAttribute(&quot;connectionSelector&quot;);
+	this.noDragTags = [&quot;input&quot;,&quot;INPUT&quot;,&quot;textarea&quot;,&quot;TEXTAREA&quot;,&quot;button&quot;,&quot;BUTTON&quot;,&quot;select&quot;,&quot;SELECT&quot;];
+	this.dragSortInterval = parseInt(this.listWidget.getAttribute(&quot;dragSortInterval&quot;,&quot;100&quot;));
+	this.dragSortAction = this.listWidget.getAttribute(&quot;dragSortAction&quot;,this.storyListTitle === &quot;$:/StoryList&quot; ? this.listWidget.wiki.getTiddlerText(DRAGSORTACTION_CONFIG) : &quot;move&quot;);
+	this.dragSortThreshold = parseInt(this.listWidget.getAttribute(&quot;dragSortThreshold&quot;,this.storyListTitle === &quot;$:/StoryList&quot; ? this.listWidget.getTiddlerText(DRAGSORTTHRESHOLD_CONFIG) : &quot;40&quot;));
+	var dragHandle = this.listWidget.getAttribute(&quot;dragHandle&quot;,null);
+	if(dragHandle === &quot;&quot;) {
+		dragHandle = null;
+	}
+	this.dragHandle = dragHandle;
+//	this.fillGaps = this.listWidget.getAttribute(&quot;fillGaps&quot;,this.listWidget.wiki.getTiddlerText(SEAMLESS_CONFIG)) === &quot;yes&quot;;
+	this.alignRight = this.listWidget.getAttribute(&quot;alignRight&quot;,this.listWidget.wiki.getTiddlerText(ALIGNRIGHT_CONFIG)) !== &quot;no&quot;;
+	this.alignBottom = this.listWidget.getAttribute(&quot;alignBottom&quot;,this.listWidget.wiki.getTiddlerText(ALIGNBOTTOM_CONFIG)) === &quot;yes&quot;;
+	this.dragEnabled = this.listWidget.getAttribute(&quot;selectText&quot;,this.listWidget.wiki.getTiddlerText(SELECTTEXT_CONFIG)) !== &quot;yes&quot;;
+	this.storyListTitle = this.listWidget.getAttribute(&quot;storyList&quot;,&quot;$:/StoryList&quot;);
+	this.storyListField = this.listWidget.getAttribute(&quot;storyListField&quot;,&quot;list&quot;);
+	this.zIndexTiddler = this.listWidget.getAttribute(&quot;zIndexTiddler&quot;,this.storyListTitle === &quot;$:/StoryList&quot; ? &quot;$:/state/muuri/tiddlers/z-indices&quot; : null);
+	this.horizontal = false;
+	this.itemTemplate = this.listWidget.getAttribute(&quot;template&quot;);
+	this.itemEditTemplate = this.listWidget.getAttribute(&quot;editTemplate&quot;);
+}
+
+MuuriStoryView.prototype.createMuuriGrid = function() {
+	var self = this;
+
+	this.muuriOptions = this.collectMuuriOptions();
+	var domNode = this.listWidget.parentDomNode;
+	domNode.setAttribute(&quot;data-grid&quot;,&quot;muuri&quot;);
+	this.muuri = new Muuri(domNode,self.muuriOptions);
+	$tw.wiki.addEventListener(&quot;change&quot;,function(changes) {
+		self.muuriRefresh(changes);
+	});
+	this.muuri.listWidget = this.listWidget;
+	var items = this.muuri.getItems();
+	this.findConnectedGrids();
+	for(var i=0; i&lt;items.length; i++) {
+		var element = items[i].getElement();
+		this.itemTitlesArray.push(this.getItemTitle(items[i]));//element.dataset.tiddlerTitle);
+		this.addResizeListener(element,function() {
+			self.refreshMuuriGrid();
+		});
+	}
+	this.addResizeListener(self.muuri._element,function() {
+		self.refreshMuuriGrid();
+	});
+
+	this.muuri.synchronizeGrid = function() {
+		self.synchronizeGrid();
+	};
+	this.muuri.getItemTitle = function(item) {
+		self.getItemTitle(item);
+	};
+};
+
+MuuriStoryView.prototype.collectMuuriOptions = function() {
+	var self = this;
+	return {
+		items: self.itemSelector,
+		dragEnabled: self.dragEnabled,
+		dragHandle: self.dragHandle,
+		layout: {
+			fillGaps: false,
+			horizontal: self.horizontal,
+			alignRight: self.alignRight,
+			alignBottom: self.alignBottom,
+			rounding: self.rounding
+		},
+		dragSortPredicate: {
+			action: self.dragSortAction,
+			threshold: self.dragSortThreshold
+		},
+		layoutEasing: easing,
+		dragStartPredicate: function (item,e) {
+			if (self.muuri._settings.dragEnabled) {
+				if((e.target &amp;&amp; e.target.tagName &amp;&amp; (self.noDragTags.indexOf(e.target.tagName) &gt; -1 || self.lookupDragTarget(e.target)) || self.detectWithinCodemirror(e) || !self.detectGridWithinGrid(e.target))) {
+					return false;
+				} else {
+					return Muuri.ItemDrag.defaultStartPredicate(item,e);
+				}
+			} else {
+				return false;
+			}
+		},
+		dragSort: function () {
+			return self.connectedGrids;
+		},
+		dragSortInterval: self.dragSortInterval,
+		showDuration: self.animationDuration,
+		layoutDuration: self.animationDuration,
+		layoutOnResize: true,
+		containerClass: self.containerClass,
+		itemClass: self.itemClass,
+		itemDraggingClass: &quot;tc-muuri-dragging&quot;,
+		itemReleasingClass: &quot;tc-muuri-releasing&quot;,
+		itemPositioningClass: &quot;tc-muuri-positioning&quot;
+	};
+};
+
+MuuriStoryView.prototype.detectWithinCodemirror = function(event) {
+	var node = event.target;
+	while(node) {
+		if(node.classList &amp;&amp; ((node.classList.contains(&quot;CodeMirror-scroll&quot;)) || (node.classList.contains(&quot;CodeMirror&quot;)))) {
+			return true;
+		}
+		node = node.parentNode;
+	}
+	return false;
+};
+
+MuuriStoryView.prototype.lookupDragTarget = function(element) {
+	var count = 0,
+		node = element.parentNode;
+	while(node &amp;&amp; count &lt; 10) {
+		if(this.noDragTags.indexOf(node.tagName) &gt; -1) {
+			return true;
+		}
+		node = node.parentNode;
+		count += 1;
+	}
+	return false;
+};
+
+MuuriStoryView.prototype.detectGridWithinGrid = function(element) {
+	var gridNode = this.muuri.getItems()[0] ? this.muuri.getItems()[0].getGrid()._element : null;
+
+	if(!gridNode) {
+		return true;
+	}
+	var elementChildNodes = element.childNodes;
+	var isCurrentGrid = false,
+		foundGrid = false;
+	
+	if(elementChildNodes.length === 0) {
+		return true;
+	}
+	$tw.utils.each(elementChildNodes,function(node) {
+		while(node &amp;&amp; !foundGrid) {
+			if(node instanceof Element &amp;&amp; node.getAttribute(&quot;data-grid&quot;) === &quot;muuri&quot;) {
+				//dragging within a grid
+				//see if the found grid is the current grid node
+				if(node !== gridNode) {
+					foundGrid = true;
+					isCurrentGrid = false;
+				} else {
+					isCurrentGrid = true;
+					foundGrid = true;
+				}
+			}
+			node = node.parentNode;
+		}
+	});
+	return isCurrentGrid;
+};
+
+MuuriStoryView.prototype.resizeListener = function(e) {
+	var win = e.target || e.srcElement;
+	if (win.__resizeRAF__) $tw.pageScroller.cancelAnimationFrame.call(win,win.__resizeRAF__);
+	win.__resizeRAF__ = $tw.pageScroller.requestAnimationFrame.call(win,function(){
+		var trigger = win.__resizeTrigger__;
+		$tw.utils.each(trigger.__resizeListeners__,function(fn){
+			fn.call(trigger, e);
+		});
+	});
+};
+
+MuuriStoryView.prototype.addResizeListener = function(element,fn) {
+	var self = this;
+	if(element) {
+		if(!element.__resizeListeners__) {
+			element.__resizeListeners__ = [];
+			if(this.attachEvent) {
+				element.__resizeTrigger__ = element;
+				element.attachEvent('onresize',self.resizeListener);
+			}
+			else {
+				if(getComputedStyle(element).position == 'static') element.style.position = 'relative';
+				var obj = element.__resizeTrigger__ = self.listWidget.document.createElement('object');
+				obj.setAttribute('style', 'display: block; position: absolute; top: 0; left: 0; height: 100%; width: 100%; overflow: hidden; pointer-events: none; z-index: -1;');
+				obj.__resizeElement__ = element;
+				obj.onload = function(e) {
+					obj.contentDocument.defaultView.__resizeTrigger__ = obj.__resizeElement__;
+					obj.contentDocument.defaultView.addEventListener(&quot;resize&quot;,self.resizeListener);
+				};
+				obj.type = 'text/html';
+				if(self.isIE) element.appendChild(obj);
+				obj.data = 'about:blank';
+				if(!self.isIE) element.appendChild(obj);
+			}
+			element.__resizeListeners__.push(fn);
+		} else {
+			element.__resizeListeners__.push(fn);
+		}
+	}
+};
+
+MuuriStoryView.prototype.removeResizeListener = function(element,fn) {
+	if(element) {
+		if(!element.__resizeListeners__) {
+			element.__resizeListeners__ = [];
+		}
+		element.__resizeListeners__.splice(element.__resizeListeners__.indexOf(fn), 1);
+		if(!element.__resizeListeners__.length) {
+			if(this.attachEvent) element.detachEvent('onresize', this.resizeListener);
+			else {
+				this.listWidget.document.defaultView.removeEventListener('resize', this.resizeListener);
+				element.__resizeTrigger__ = this.isNode(element.__resizeTrigger__) &amp;&amp; element.__resizeTrigger__ !== undefined ? !element.removeChild(element.__resizeTrigger__) : undefined;
+			}
+		}
+	}
+};
+
+MuuriStoryView.prototype.refreshMuuriGrid = function(item) {
+	var self = this;
+	this.muuri.refreshItems();
+	this.muuri._refreshDimensions();
+	this.muuri.layout(); //no .layout(true), make tiddlers move, not jump instantly
+};
+
+MuuriStoryView.prototype.isNode = function(o) {
+	return (
+		typeof Node === &quot;object&quot; ? o instanceof Node : o &amp;&amp; typeof o === &quot;object&quot; &amp;&amp; typeof o.nodeType === &quot;number&quot; &amp;&amp; typeof o.nodeName===&quot;string&quot;
+	);
+};
+
+MuuriStoryView.prototype.insert = function(widget) {
+	var self = this;
+	var targetElement = widget.findFirstDomNode();
+	if(!(targetElement instanceof Element)) {
+		return;
+	}
+	this.refreshItemTitlesArray();
+	var itemTitle = widget.parseTreeNode.itemTitle;
+	var targetIndex = this.listWidget.findListItem(0,itemTitle);
+	if(this.itemTitlesArray.indexOf(itemTitle) !== -1) {
+		var index = this.itemTitlesArray.indexOf(itemTitle),
+				items = this.muuri.getItems();
+		//this.muuri.remove([items[index]],{removeElements: true, layout: false})
+		this.muuri._items.splice(index,1);
+		this.muuri.refreshItems();
+	}
+	setTimeout(function(){
+		self.muuri.add(targetElement,{index: targetIndex, instant: true});
+		self.addResizeListener(targetElement,function() {
+			self.refreshMuuriGrid();
+		});
+		self.refreshItemTitlesArray();
+	},0);
+};
+
+MuuriStoryView.prototype.remove = function(widget) {
+	var self = this;
+	var targetElement = widget.findFirstDomNode();
+	var removeElement = function() {
+		widget ? widget.removeChildDomNodes() : null;
+	};
+	if(!targetElement instanceof Element) {
+		removeElement();
+		return;
+	}
+	this.removeResizeListener(targetElement,function() {
+		self.refreshMuuriGrid();
+	});
+	removeElement();
+	this.muuri.refreshItems();
+	setTimeout(function(){
+		self.muuri.remove([targetElement],{removeElements: true});
+		self.muuri.layout();
+		self.refreshItemTitlesArray();
+	},0);
+};
+
+MuuriStoryView.prototype.navigateTo = function(historyInfo) {
+	var listElementIndex = this.listWidget.findListItem(0,historyInfo.title);
+	if(listElementIndex === undefined) {
+		return;
+	}
+	var listItemWidget = this.listWidget.children[listElementIndex],
+		targetElement = listItemWidget.findFirstDomNode();
+	// Abandon if the list entry isn&quot;t a DOM element (it might be a text node)
+	if(!(targetElement instanceof Element)) {
+		return;
+	}
+	// Scroll the node into view
+	this.listWidget.dispatchEvent({type: &quot;tm-scroll&quot;, target: targetElement});
+};
+
+MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
+	var self = this;
+	var changedAttributes = this.listWidget.computeAttributes();
+	if(changedTiddlers[&quot;$:/config/AnimationDuration&quot;]) {
+		this.muuri._settings.showDuration = this.muuri._settings.layoutDuration = this.animationDuration = $tw.utils.getAnimationDuration();
+	}
+	if(changedTiddlers[COLUMN_CONFIG]) {
+		this.muuri.refreshItems();
+		this.muuri.layout();
+		this.muuri.synchronize();
+	}
+	if(changedTiddlers[SELECTTEXT_CONFIG] || changedAttributes.selectText) {
+		this.muuri._settings.dragEnabled = this.dragEnabled = this.listWidget.getAttribute(&quot;selectText&quot;,this.listWidget.wiki.getTiddlerText(SELECTTEXT_CONFIG)) !== &quot;yes&quot;;
+		var items = this.muuri.getItems();
+		var elements = [];
+		for(var i=0; i&lt;items.length; i++) {
+			elements.push(items[i]._element);
+		}
+		this.muuri.remove(items,{removeElements:true,layout:false});
+		this.muuri.add(elements,{layout:false});
+		this.muuri.layout(true);
+	}
+	if(changedTiddlers[ALIGNRIGHT_CONFIG] || changedAttributes.alignRight) {
+		this.muuri._settings.layout.alignRight = this.alignRight = this.listWidget.getAttribute(&quot;alignRight&quot;,this.listWidget.wiki.getTiddlerText(ALIGNRIGHT_CONFIG)) !== &quot;no&quot;;
+		this.muuri.refreshItems();
+		this.muuri._refreshDimensions();
+		this.muuri.layout();
+	}
+	if(changedTiddlers[ALIGNBOTTOM_CONFIG] || changedAttributes.alignBottom) {
+		this.muuri._settings.layout.alignBottom = this.alignBottom = this.listWidget.getAttribute(&quot;alignBottom&quot;,this.listWidget.wiki.getTiddlerText(ALIGNBOTTOM_CONFIG)) === &quot;yes&quot;;
+		this.muuri.refreshItems();
+		this.muuri._refreshDimensions();
+		this.muuri.layout();
+	}
+	if(changedTiddlers[SEAMLESS_CONFIG]) {
+		this.muuri.refreshItems();
+		this.muuri._refreshDimensions();
+		this.muuri.layout();		
+	}
+	if(changedTiddlers[DRAGSORTACTION_CONFIG] || changedAttributes.dragSortAction) {
+		this.muuri._settings.dragSortPredicate.action = this.dragSortAction = this.listWidget.getAttribute(&quot;dragSortAction&quot;,this.storyListTitle === &quot;$:/StoryList&quot; ? this.listWidget.wiki.getTiddlerText(DRAGSORTACTION_CONFIG) : &quot;move&quot;);
+	}
+	if(changedTiddlers[DRAGSORTTHRESHOLD_CONFIG] || changedAttributes.dragSortThreshold) {
+		this.muuri._settings.dragSortPredicate.threshold = this.dragSortThreshold = parseInt(this.listWidget.getAttribute(&quot;dragSortThreshold&quot;,this.storyListTitle === &quot;$:/StoryList&quot; ? this.listWidget.wiki.getTiddlerText(DRAGSORTTHRESHOLD_CONFIG) : &quot;40&quot;));		
+	}
+	if(changedTiddlers[this.itemTemplate] || changedTiddlers[this.itemEditTemplate]) {
+		setTimeout(function(){
+			self.listWidget.refreshSelf();
+		},50);
+	}
+	if(changedAttributes.storyList || changedAttributes.storyListField || changedAttributes.containerClass || changedAttributes.itemClass || changedAttributes.zIndexTiddler || changedAttributes.dragHandle) {
+		this.listWidget.refreshSelf();
+	}
+	return true;
+}
+
+exports.muuri = MuuriStoryView;
+
+})();
+</pre>
+</div>
 <div dependents="" description="CodeMirror editor" list="readme usage keyboard license" name="CodeMirror" plugin-type="plugin" title="$:/plugins/tiddlywiki/codemirror" type="application/json" version="5.1.23-prerelease">
 <pre>{
     &quot;tiddlers&quot;: {
@@ -11344,7 +12026,7 @@ Error message and password prompt
 <div created="20201015235530914" modified="20201022232452598" title="$:/state/config/muuri/storyview/align-right">
 <pre>yes</pre>
 </div>
-<div created="20200926100505159" modified="20201023080647385" title="$:/state/config/muuri/storyview/columns">
+<div created="20200926100505159" modified="20201025092132840" title="$:/state/config/muuri/storyview/columns">
 <pre>4</pre>
 </div>
 <div created="20201024200307381" modified="20201024201447878" title="$:/state/config/muuri/storyview/dragsort-action">
@@ -11416,13 +12098,13 @@ Error message and password prompt
 <div created="20201022194148386" modified="20201022194215993" title="$:/state/folded/This Louvre moment">
 <pre>show</pre>
 </div>
-<div created="20201011091747657" list="[[The Birth of Venus]] [[I am a Guitar]] [[I am an old Microphone]] [[A muuri grid within a tiddler]] [[I am Mr. Van Gogh]] [[Ceci n’est pas une pipe.]] [[Girl with a Pearl Earring]] [[This Louvre moment]] [[Mona Lisa]] [[The Kiss]] [[I am one of that guy's paintings]] [[El jardin de las Delicias]] $:/ControlPanel [[The Great Wave off the Coast of Kanagawa]]" modified="20201025084609684" title="$:/state/muuri/tiddlers/z-indices">
+<div created="20201011091747657" list="[[The Birth of Venus]] [[I am Mr. Van Gogh]] [[Ceci n’est pas une pipe.]] [[I am an old Microphone]] [[A muuri grid within a tiddler]] [[Mona Lisa]] [[I am a Guitar]] [[Girl with a Pearl Earring]] [[El jardin de las Delicias]] $:/ControlPanel [[The Kiss]] [[The Great Wave off the Coast of Kanagawa]] [[Additional attributes for the list widget]] [[I am one of that guy's paintings]] [[This Louvre moment]]" modified="20201206074424009" title="$:/state/muuri/tiddlers/z-indices">
 <pre></pre>
 </div>
 <div created="20201009163734687" modified="20201009163734687" title="$:/state/plugin-info-429242540-$:/plugins/ahahn/tinka---1055664959">
 <pre>usage</pre>
 </div>
-<div created="20200829143818288" modified="20201025084609458" title="$:/state/sidebar">
+<div created="20200829143818288" modified="20201025092216802" title="$:/state/sidebar">
 <pre>yes</pre>
 </div>
 <div created="20200823114453204" modified="20200823114453204" title="$:/state/tab--1498284803">
@@ -11449,13 +12131,13 @@ Error message and password prompt
 <div created="20200823121457714" modified="20201023091319825" title="$:/state/tab/moresidebar-1850697562">
 <pre>$:/core/ui/MoreSideBar/Plugins</pre>
 </div>
-<div created="20200823120933462" modified="20201025084613186" title="$:/state/tab/sidebar--595412856">
+<div created="20200823120933462" modified="20201206074428841" title="$:/state/tab/sidebar--595412856">
 <pre>$:/core/ui/SideBar/Open</pre>
 </div>
 <div title="$:/status/RequireReloadDueToPluginChange">
 <pre>no</pre>
 </div>
-<div created="20201025084511821" list="$:/ControlPanel [[Mona Lisa]] [[I am Mr. Van Gogh]] [[The Birth of Venus]] [[I am a Guitar]] [[Ceci n’est pas une pipe.]] [[The Kiss]] [[Girl with a Pearl Earring]] [[I am an old Microphone]] [[I am one of that guy's paintings]] [[The Great Wave off the Coast of Kanagawa]] [[El jardin de las Delicias]] [[This Louvre moment]] [[A muuri grid within a tiddler]]" modified="20201025084604903" title="$:/StoryList">
+<div created="20201206074306018" list="[[Additional attributes for the list widget]] $:/ControlPanel [[Mona Lisa]] [[The Birth of Venus]] [[I am Mr. Van Gogh]] [[I am a Guitar]] [[Ceci n’est pas une pipe.]] [[The Kiss]] [[Girl with a Pearl Earring]] [[I am an old Microphone]] [[I am one of that guy's paintings]] [[The Great Wave off the Coast of Kanagawa]] [[El jardin de las Delicias]] [[This Louvre moment]] [[A muuri grid within a tiddler]]" modified="20201206074420320" title="$:/StoryList">
 <pre></pre>
 </div>
 <div created="20200913082411339" list="" modified="20201009153240736" tags="" title="$:/StoryList2">
@@ -11477,7 +12159,7 @@ Error message and password prompt
         },
         &quot;$:/info/startup-timestamp&quot;: {
             &quot;title&quot;: &quot;$:/info/startup-timestamp&quot;,
-            &quot;text&quot;: &quot;20201025084446948&quot;
+            &quot;text&quot;: &quot;20201206074303715&quot;
         },
         &quot;$:/info/url/full&quot;: {
             &quot;title&quot;: &quot;$:/info/url/full&quot;,
@@ -12959,6 +13641,9 @@ No gaps between tiddlers if `{{$:/config/muuri/storyview/gap-less}}` === yes
 
 </pre>
 </div>
+<div bag="default" created="20190221125559737" list="[[Item #4]] [[Item #5]] [[Item #6]]" modified="20201025091316350" revision="0" tags="" title="done-list" type="text/vnd.tiddlywiki">
+<pre></pre>
+</div>
 <div created="20201017085609060" modified="20201017085629438" tags="" title="El jardin de las Delicias">
 <pre>[img[https://upload.wikimedia.org/wikipedia/commons/a/ae/El_jard%C3%ADn_de_las_Delicias%2C_de_El_Bosco.jpg]]</pre>
 </div>
@@ -12996,6 +13681,128 @@ No gaps between tiddlers if `{{$:/config/muuri/storyview/gap-less}}` === yes
 &lt;/div&gt;
 &lt;/div&gt;</pre>
 </div>
+<div created="20201025090016091" modified="20201025091711378" tags="" title="Kanban Demo">
+<pre>\whitespace trim
+&lt;$list filter=&quot;[list[kanban-list]]&quot; storyview=&quot;muuri&quot; itemClass=&quot;board-column&quot; containerClass=&quot;kanban-demo-board&quot; dragSortAction=&quot;swap&quot; dragSortInterval=&quot;0&quot; storyList=&quot;kanban-list&quot;&gt;
+&lt;$transclude/&gt;
+&lt;/$list&gt;</pre>
+</div>
+<div bag="default" created="20190221122227839" modified="20201025090341347" revision="0" tags="[[Kanban Demo Column]]" title="Kanban Demo Done" type="text/vnd.tiddlywiki">
+<pre>\whitespace trim
+&lt;div class=&quot;board-column board-column-done&quot;&gt;
+&lt;div class=&quot;board-column-header&quot;&gt;Done&lt;/div&gt;
+&lt;div class=&quot;board-column-content&quot;&gt;
+&lt;$list filter=&quot;[list[done-list]]&quot; storyview=&quot;muuri&quot; itemClass=&quot;board-item&quot; containerClass=&quot;board-column-content&quot;  connectionSelector=&quot;.board-column-content&quot; dragSortInterval=&quot;0&quot; storyList=&quot;done-list&quot;&gt;
+&lt;div class=&quot;board-item&quot;&gt;
+&lt;div class=&quot;board-item-content&quot;&gt;
+&lt;$text text=&lt;&lt;currentTiddler&gt;&gt;/&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/$list&gt;
+&lt;/div&gt;
+&lt;/div&gt;</pre>
+</div>
+<div bag="default" created="20190221032718149" modified="20190222021354199" revision="0" tags="$:/tags/Stylesheet" title="Kanban Demo Styles" type="text/vnd.tiddlywiki">
+<pre>.kanban-demo-board {
+position:relative;
+margin-left:1%;
+width: 100%;
+min-height:100px;
+}
+
+.kanban-demo-board .tc-muuri-dragging {
+z-index: 1;
+}
+
+.board-item {
+    position: absolute;
+    width: 100%;
+    margin: 5px 0 5px 0;
+}
+
+.board-column {
+width:30%;
+margin: 0 1.5% 0 1.5%;
+ background:#f0f0f0;
+border-radius:3px;
+min-height:300px;
+position:absolute;
+}
+
+.board-column-header {
+position:relative;
+height:50px;
+line-height:50px;
+overflow:hidden;
+padding: 0 20px;
+text-align:center;
+color: white;
+border-radius: 3px 3px 0 0;
+}
+
+.board-column-todo .board-column-header {
+background:#4A9FF9;
+}
+
+.board-column-done .board-column-header {
+background:#2ac06d;
+}
+
+.board-column-working .board-column-header {
+background: #f9944a;
+}
+
+.board-column-content {
+ position:relative;
+border: 10px solid transparent;
+min-height: 250px;
+}
+
+.board-item-content {
+    position: relative;
+    padding: 20px;
+    background: #fff;
+color: black;
+    border-radius: 4px;
+    font-size: 17px;
+    cursor: pointer;
+    -webkit-box-shadow: 0px 1px 3px 0 rgba(0,0,0,0.2);
+    box-shadow: 0px 1px 3px 0 rgba(0,0,0,0.2);
+}</pre>
+</div>
+<div bag="default" created="20190221122120448" modified="20201025090253546" revision="0" tags="[[Kanban Demo Column]]" title="Kanban Demo Todo" type="text/vnd.tiddlywiki">
+<pre>\whitespace trim
+&lt;div class=&quot;board-column board-column-todo&quot;&gt;
+&lt;div class=&quot;board-column-header&quot;&gt;Todo&lt;/div&gt;
+&lt;div class=&quot;board-column-content&quot;&gt;
+&lt;$list filter=&quot;[list[todo-list]]&quot; storyview=&quot;muuri&quot; itemClass=&quot;board-item&quot; containerClass=&quot;board-column-content&quot;  dragSortInterval=&quot;0&quot; connectionSelector=&quot;.board-column-content&quot; storyList=&quot;todo-list&quot;&gt;
+&lt;div class=&quot;board-item&quot;&gt;
+&lt;div class=&quot;board-item-content&quot;&gt;
+&lt;&lt;currentTiddler&gt;&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/$list&gt;
+&lt;/div&gt;
+&lt;/div&gt;</pre>
+</div>
+<div bag="default" created="20190221122211367" modified="20201025090320449" revision="0" tags="[[Kanban Demo Column]]" title="Kanban Demo Working" type="text/vnd.tiddlywiki">
+<pre>\whitespace trim
+&lt;div class=&quot;board-column board-column-working&quot;&gt;
+&lt;div class=&quot;board-column-header&quot;&gt;Working&lt;/div&gt;
+&lt;div class=&quot;board-column-content&quot;&gt;
+&lt;$list filter=&quot;[list[working-list]]&quot; storyview=&quot;muuri&quot; itemClass=&quot;board-item&quot; containerClass=&quot;board-column-content&quot;  connectionSelector=&quot;.board-column-content&quot; storyList=&quot;working-list&quot; dragSortInterval=&quot;0&quot;&gt;
+&lt;div class=&quot;board-item&quot;&gt;
+&lt;div class=&quot;board-item-content&quot;&gt;
+&lt;&lt;currentTiddler&gt;&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/$list&gt;
+&lt;/div&gt;
+&lt;/div&gt;</pre>
+</div>
+<div bag="default" created="20190221130918668" list="[[Kanban Demo Working]] [[Kanban Demo Done]] [[Kanban Demo Todo]]" modified="20201025091727067" revision="0" tags="" title="kanban-list" type="text/vnd.tiddlywiki">
+<pre></pre>
+</div>
 <div created="20201011123647469" modified="20201017071559046" tags="" title="Mona Lisa">
 <pre>[img [https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/687px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg]]
 </pre>
@@ -13012,7 +13819,7 @@ input[type=search]::-ms-reveal { display: none; width : 0; height: 0; }</pre>
 
 &lt;/div&gt;</pre>
 </div>
-<div created="20201025083141487" list="" modified="20201025084542506" title="sidebarlist">
+<div created="20201025083141487" list="" modified="20201206074420290" title="sidebarlist">
 <pre></pre>
 </div>
 <div created="20201022200345446" modified="20201022200508192" tags="" title="The Birth of Venus">
@@ -13026,6 +13833,12 @@ input[type=search]::-ms-reveal { display: none; width : 0; height: 0; }</pre>
 </div>
 <div created="20201011123841783" modified="20201011123926224" tags="" title="This Louvre moment">
 <pre>[img[https://upload.wikimedia.org/wikipedia/commons/c/c3/Scuola_di_fontainebleau%2C_presunti_ritratti_di_gabrielle_d%27estr%C3%A9es_sua_sorella_la_duchessa_di_villars%2C_1594_ca._06.jpg]]</pre>
+</div>
+<div bag="default" created="20190221130022878" list="[[Item #1]] Item#2 [[Item #3]]" modified="20201025091352948" revision="0" title="todo-list" type="text/vnd.tiddlywiki">
+<pre></pre>
+</div>
+<div bag="default" created="20190221130008776" list="[[Item #7]]" modified="20201025091350176" revision="0" title="working-list" type="text/vnd.tiddlywiki">
+<pre></pre>
 </div>
 
 

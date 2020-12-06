@@ -552,11 +552,13 @@ MuuriStoryView.prototype.insert = function(widget) {
 		this.muuri._items.splice(index,1);
 		this.muuri.refreshItems();
 	}
-	this.muuri.add(targetElement,{index: targetIndex, instant: true});
-	this.addResizeListener(targetElement,function() {
-		self.refreshMuuriGrid();
-	});
-	this.refreshItemTitlesArray();
+	setTimeout(function(){
+		self.muuri.add(targetElement,{index: targetIndex, instant: true});
+		self.addResizeListener(targetElement,function() {
+			self.refreshMuuriGrid();
+		});
+		self.refreshItemTitlesArray();
+	},0);
 };
 
 MuuriStoryView.prototype.remove = function(widget) {
@@ -574,9 +576,11 @@ MuuriStoryView.prototype.remove = function(widget) {
 	});
 	removeElement();
 	this.muuri.refreshItems();
-	this.muuri.remove([targetElement],{removeElements: true});
-	this.muuri.layout();
-	this.refreshItemTitlesArray();
+	setTimeout(function(){
+		self.muuri.remove([targetElement],{removeElements: true});
+		self.muuri.layout();
+		self.refreshItemTitlesArray();
+	},0);
 };
 
 MuuriStoryView.prototype.navigateTo = function(historyInfo) {
