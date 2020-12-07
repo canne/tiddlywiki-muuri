@@ -15,12 +15,12 @@ Views the story as a muuri grid
 var easing = "cubic-bezier(0.215, 0.61, 0.355, 1)";
 
 var COLUMN_CONFIG = "$:/state/config/muuri/storyview/columns",
-		SEAMLESS_CONFIG = "$:/config/muuri/storyview/fill-gaps",
-		ALIGNRIGHT_CONFIG = "$:/state/config/muuri/storyview/align-right",
-		ALIGNBOTTOM_CONFIG = "$:/state/config/muuri/storyview/align-bottom",
-		DRAGSORTACTION_CONFIG = "$:/config/muuri/storyview/dragsort-action",
-		DRAGSORTTHRESHOLD_CONFIG ="$:/config/muuri/storyview/dragsort-threshold",
-		SELECTTEXT_CONFIG = "$:/state/config/muuri/storyview/select-text";
+	SEAMLESS_CONFIG = "$:/config/muuri/storyview/fill-gaps",
+	ALIGNRIGHT_CONFIG = "$:/state/config/muuri/storyview/align-right",
+	ALIGNBOTTOM_CONFIG = "$:/state/config/muuri/storyview/align-bottom",
+	DRAGSORTACTION_CONFIG = "$:/config/muuri/storyview/dragsort-action",
+	DRAGSORTTHRESHOLD_CONFIG ="$:/config/muuri/storyview/dragsort-threshold",
+	SELECTTEXT_CONFIG = "$:/state/config/muuri/storyview/select-text";
 
 if(typeof window !== "undefined") {
 	var testElement = document.body;
@@ -57,6 +57,7 @@ var MuuriStoryView = function(listWidget) {
 		self.restoreIframeEvents();
 	})
 	.on("dragStart", function(item, event) {
+		self.isDragging = true;
 		self.findConnectedGrids();
 	})
 	.on("layoutStart", function() {
@@ -262,6 +263,7 @@ MuuriStoryView.prototype.getItemTitle = function(item) {
 };
 
 MuuriStoryView.prototype.onDragReleaseEnd = function(item) {
+	var self = this;
 	var items = this.muuri.getItems(),
 			isReleasing = false;
 	for (var i=0; i<items.length; i++) {
@@ -274,6 +276,9 @@ MuuriStoryView.prototype.onDragReleaseEnd = function(item) {
 		for(i=0; i<this.connectedGrids.length; i++) {
 			this.connectedGrids[i].synchronizeGrid();
 		}
+		setTimeout(function() {
+			self.isDragging = false;
+		},self.animationDuration);
 	}
 };
 
@@ -552,13 +557,21 @@ MuuriStoryView.prototype.insert = function(widget) {
 		this.muuri._items.splice(index,1);
 		this.muuri.refreshItems();
 	}
-	setTimeout(function(){
-		self.muuri.add(targetElement,{index: targetIndex, instant: true});
-		self.addResizeListener(targetElement,function() {
+	if(!this.isDragging) {
+		setTimeout(function(){
+			self.muuri.add(targetElement,{index: targetIndex, instant: true});
+			self.addResizeListener(targetElement,function() {
+				self.refreshMuuriGrid();
+			});
+			self.refreshItemTitlesArray();
+		},0);
+	} else {
+		this.muuri.add(targetElement,{index: targetIndex, instant: true});
+		this.addResizeListener(targetElement,function() {
 			self.refreshMuuriGrid();
 		});
-		self.refreshItemTitlesArray();
-	},0);
+		this.refreshItemTitlesArray();		
+	}
 };
 
 MuuriStoryView.prototype.remove = function(widget) {
@@ -576,11 +589,17 @@ MuuriStoryView.prototype.remove = function(widget) {
 	});
 	removeElement();
 	this.muuri.refreshItems();
-	setTimeout(function(){
-		self.muuri.remove([targetElement],{removeElements: true});
-		self.muuri.layout();
-		self.refreshItemTitlesArray();
-	},0);
+	if(!this.isDragging) {
+		setTimeout(function(){
+			self.muuri.remove([targetElement],{removeElements: true});
+			self.muuri.layout();
+			self.refreshItemTitlesArray();
+		},0);
+	} else {
+		this.muuri.remove([targetElement],{removeElements: true});
+		this.muuri.layout();
+		this.refreshItemTitlesArray();		
+	}
 };
 
 MuuriStoryView.prototype.navigateTo = function(historyInfo) {

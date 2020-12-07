@@ -217,6 +217,8 @@ Error message and password prompt
 
 <li>$:/state/tab-1749438307</li>
 
+<li>$:/state/tab/moresidebar-1850697562</li>
+
 <li>$:/state/tab/sidebar--595412856</li>
 
 <li>$:/status/RequireReloadDueToPluginChange</li>
@@ -10743,7 +10745,7 @@ Error message and password prompt
     }
 }</pre>
 </div>
-<div created="20200823113928572" modified="20201206074252752" module-type="storyview" tags="" title="$:/plugins/BTC/Muuri/modules/storyviews/muuri.js" type="application/javascript">
+<div created="20200823113928572" modified="20201207123020401" module-type="storyview" tags="" title="$:/plugins/BTC/Muuri/modules/storyviews/muuri.js" type="application/javascript">
 <pre>/*\
 title: $:/plugins/BTC/Muuri/modules/storyviews/muuri.js
 type: application/javascript
@@ -10761,12 +10763,12 @@ Views the story as a muuri grid
 var easing = &quot;cubic-bezier(0.215, 0.61, 0.355, 1)&quot;;
 
 var COLUMN_CONFIG = &quot;$:/state/config/muuri/storyview/columns&quot;,
-		SEAMLESS_CONFIG = &quot;$:/config/muuri/storyview/fill-gaps&quot;,
-		ALIGNRIGHT_CONFIG = &quot;$:/state/config/muuri/storyview/align-right&quot;,
-		ALIGNBOTTOM_CONFIG = &quot;$:/state/config/muuri/storyview/align-bottom&quot;,
-		DRAGSORTACTION_CONFIG = &quot;$:/config/muuri/storyview/dragsort-action&quot;,
-		DRAGSORTTHRESHOLD_CONFIG =&quot;$:/config/muuri/storyview/dragsort-threshold&quot;,
-		SELECTTEXT_CONFIG = &quot;$:/state/config/muuri/storyview/select-text&quot;;
+	SEAMLESS_CONFIG = &quot;$:/config/muuri/storyview/fill-gaps&quot;,
+	ALIGNRIGHT_CONFIG = &quot;$:/state/config/muuri/storyview/align-right&quot;,
+	ALIGNBOTTOM_CONFIG = &quot;$:/state/config/muuri/storyview/align-bottom&quot;,
+	DRAGSORTACTION_CONFIG = &quot;$:/config/muuri/storyview/dragsort-action&quot;,
+	DRAGSORTTHRESHOLD_CONFIG =&quot;$:/config/muuri/storyview/dragsort-threshold&quot;,
+	SELECTTEXT_CONFIG = &quot;$:/state/config/muuri/storyview/select-text&quot;;
 
 if(typeof window !== &quot;undefined&quot;) {
 	var testElement = document.body;
@@ -10803,6 +10805,7 @@ var MuuriStoryView = function(listWidget) {
 		self.restoreIframeEvents();
 	})
 	.on(&quot;dragStart&quot;, function(item, event) {
+		self.isDragging = true;
 		self.findConnectedGrids();
 	})
 	.on(&quot;layoutStart&quot;, function() {
@@ -11008,6 +11011,7 @@ MuuriStoryView.prototype.getItemTitle = function(item) {
 };
 
 MuuriStoryView.prototype.onDragReleaseEnd = function(item) {
+	var self = this;
 	var items = this.muuri.getItems(),
 			isReleasing = false;
 	for (var i=0; i&lt;items.length; i++) {
@@ -11020,6 +11024,9 @@ MuuriStoryView.prototype.onDragReleaseEnd = function(item) {
 		for(i=0; i&lt;this.connectedGrids.length; i++) {
 			this.connectedGrids[i].synchronizeGrid();
 		}
+		setTimeout(function() {
+			self.isDragging = false;
+		},self.animationDuration);
 	}
 };
 
@@ -11298,13 +11305,21 @@ MuuriStoryView.prototype.insert = function(widget) {
 		this.muuri._items.splice(index,1);
 		this.muuri.refreshItems();
 	}
-	setTimeout(function(){
-		self.muuri.add(targetElement,{index: targetIndex, instant: true});
-		self.addResizeListener(targetElement,function() {
+	if(!this.isDragging) {
+		setTimeout(function(){
+			self.muuri.add(targetElement,{index: targetIndex, instant: true});
+			self.addResizeListener(targetElement,function() {
+				self.refreshMuuriGrid();
+			});
+			self.refreshItemTitlesArray();
+		},0);
+	} else {
+		this.muuri.add(targetElement,{index: targetIndex, instant: true});
+		this.addResizeListener(targetElement,function() {
 			self.refreshMuuriGrid();
 		});
-		self.refreshItemTitlesArray();
-	},0);
+		this.refreshItemTitlesArray();		
+	}
 };
 
 MuuriStoryView.prototype.remove = function(widget) {
@@ -11322,11 +11337,17 @@ MuuriStoryView.prototype.remove = function(widget) {
 	});
 	removeElement();
 	this.muuri.refreshItems();
-	setTimeout(function(){
-		self.muuri.remove([targetElement],{removeElements: true});
-		self.muuri.layout();
-		self.refreshItemTitlesArray();
-	},0);
+	if(!this.isDragging) {
+		setTimeout(function(){
+			self.muuri.remove([targetElement],{removeElements: true});
+			self.muuri.layout();
+			self.refreshItemTitlesArray();
+		},0);
+	} else {
+		this.muuri.remove([targetElement],{removeElements: true});
+		this.muuri.layout();
+		this.refreshItemTitlesArray();		
+	}
 };
 
 MuuriStoryView.prototype.navigateTo = function(historyInfo) {
@@ -12148,10 +12169,10 @@ exports.muuri = MuuriStoryView;
 <div created="20201206090743532" modified="20201206090756673" title="$:/state/config/muuri/storyview/columns">
 <pre>4</pre>
 </div>
-<div created="20201206090726967" list="[[I am one of that guy's paintings]] [[Girl with a Pearl Earring]] [[The Birth of Venus]] [[This Louvre moment]] [[The Great Wave off the Coast of Kanagawa]] [[El jardin de las Delicias]] [[I am Mr. Van Gogh]] [[The Kiss]] [[I am a Guitar]] [[Ceci n’est pas une pipe.]] [[Mona Lisa]] [[I am an old Microphone]]" modified="20201206090858468" title="$:/state/muuri/tiddlers/z-indices">
+<div created="20201206090726967" list="[[This Louvre moment]] [[Ceci n’est pas une pipe.]] [[El jardin de las Delicias]] [[I am Mr. Van Gogh]] [[The Great Wave off the Coast of Kanagawa]] [[The Birth of Venus]] [[Girl with a Pearl Earring]] [[The Kiss]] [[I am an old Microphone]] [[Mona Lisa]] [[I am one of that guy's paintings]] [[I am a Guitar]]" modified="20201207123105765" title="$:/state/muuri/tiddlers/z-indices">
 <pre></pre>
 </div>
-<div created="20201206090858207" modified="20201206090858207" title="$:/state/sidebar">
+<div created="20201206090858207" modified="20201207123105511" title="$:/state/sidebar">
 <pre>no</pre>
 </div>
 <div created="20201206090823409" modified="20201206090823410" title="$:/state/tab--1963855381">
@@ -12160,13 +12181,16 @@ exports.muuri = MuuriStoryView;
 <div created="20201206090822490" modified="20201206090822490" title="$:/state/tab-1749438307">
 <pre>$:/core/ui/ControlPanel/Appearance</pre>
 </div>
-<div created="20201206090733652" modified="20201206090817429" title="$:/state/tab/sidebar--595412856">
+<div created="20201207121538705" modified="20201207121538705" title="$:/state/tab/moresidebar-1850697562">
+<pre>$:/core/ui/MoreSideBar/Plugins</pre>
+</div>
+<div created="20201206090733652" modified="20201207123028106" title="$:/state/tab/sidebar--595412856">
 <pre>$:/core/ui/SideBar/Open</pre>
 </div>
 <div title="$:/status/RequireReloadDueToPluginChange">
 <pre>no</pre>
 </div>
-<div created="20201206090735846" list="[[Ceci n’est pas une pipe.]] [[I am Mr. Van Gogh]] [[This Louvre moment]] [[I am one of that guy's paintings]] [[Mona Lisa]] [[The Great Wave off the Coast of Kanagawa]] [[Girl with a Pearl Earring]] [[The Kiss]] [[El jardin de las Delicias]] [[The Birth of Venus]] [[I am an old Microphone]] [[I am a Guitar]]" modified="20201206090844544" title="$:/StoryList">
+<div created="20201207123036605" list="[[Mona Lisa]] [[Girl with a Pearl Earring]] [[I am Mr. Van Gogh]] [[This Louvre moment]] [[Ceci n’est pas une pipe.]] [[The Great Wave off the Coast of Kanagawa]] [[The Kiss]] [[I am one of that guy's paintings]] [[El jardin de las Delicias]] [[The Birth of Venus]] [[I am an old Microphone]] [[I am a Guitar]]" modified="20201207123102485" title="$:/StoryList">
 <pre></pre>
 </div>
 <div created="20200913082411339" list="" modified="20201009153240736" tags="" title="$:/StoryList2">
