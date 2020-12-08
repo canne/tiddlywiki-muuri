@@ -577,7 +577,7 @@ MuuriStoryView.prototype.insert = function(widget) {
 		this.addResizeListener(targetElement,function() {
 			self.refreshMuuriGrid();
 		});
-		this.refreshItemTitlesArray();		
+		this.refreshItemTitlesArray();
 	}
 };
 
@@ -605,7 +605,7 @@ MuuriStoryView.prototype.remove = function(widget) {
 	} else {
 		this.muuri.remove([targetElement],{removeElements: true});
 		this.muuri.layout();
-		this.refreshItemTitlesArray();		
+		this.refreshItemTitlesArray();
 	}
 };
 
