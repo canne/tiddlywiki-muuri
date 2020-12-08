@@ -410,6 +410,7 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 			}
 		},
 		dragSort: function () {
+			self.findConnectedGrids();
 			return self.connectedGrids;
 		},
 		dragSortInterval: self.dragSortInterval,
