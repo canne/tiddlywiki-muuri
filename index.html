@@ -10745,7 +10745,7 @@ Error message and password prompt
     }
 }</pre>
 </div>
-<div created="20200823113928572" modified="20201207123020401" module-type="storyview" tags="" title="$:/plugins/BTC/Muuri/modules/storyviews/muuri.js" type="application/javascript">
+<div created="20200823113928572" modified="20201208090314952" module-type="storyview" tags="" title="$:/plugins/BTC/Muuri/modules/storyviews/muuri.js" type="application/javascript">
 <pre>/*\
 title: $:/plugins/BTC/Muuri/modules/storyviews/muuri.js
 type: application/javascript
@@ -11138,8 +11138,15 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 		},
 		layoutEasing: easing,
 		dragStartPredicate: function (item,e) {
+			var items = self.muuri.getItems(),
+				isReleasing = false;
+			for (var i=0; i&lt;items.length; i++) {
+				if(items[i].isDragging() || items[i].isReleasing() || items[i].isShowing() || items[i].isHiding() || items[i].isPositioning()) {
+					isReleasing = true;
+				}
+			}
 			if (self.muuri._settings.dragEnabled) {
-				if((e.target &amp;&amp; e.target.tagName &amp;&amp; (self.noDragTags.indexOf(e.target.tagName) &gt; -1 || self.lookupDragTarget(e.target)) || self.detectWithinCodemirror(e) || !self.detectGridWithinGrid(e.target))) {
+				if(isReleasing || (e.target &amp;&amp; e.target.tagName &amp;&amp; (self.noDragTags.indexOf(e.target.tagName) &gt; -1 || self.lookupDragTarget(e.target)) || self.detectWithinCodemirror(e) || !self.detectGridWithinGrid(e.target))) {
 					return false;
 				} else {
 					return Muuri.ItemDrag.defaultStartPredicate(item,e);
@@ -12169,10 +12176,10 @@ exports.muuri = MuuriStoryView;
 <div created="20201206090743532" modified="20201206090756673" title="$:/state/config/muuri/storyview/columns">
 <pre>4</pre>
 </div>
-<div created="20201206090726967" list="[[This Louvre moment]] [[Ceci n’est pas une pipe.]] [[El jardin de las Delicias]] [[I am Mr. Van Gogh]] [[The Great Wave off the Coast of Kanagawa]] [[The Birth of Venus]] [[Girl with a Pearl Earring]] [[The Kiss]] [[I am an old Microphone]] [[Mona Lisa]] [[I am one of that guy's paintings]] [[I am a Guitar]]" modified="20201207123105765" title="$:/state/muuri/tiddlers/z-indices">
+<div created="20201206090726967" list="[[This Louvre moment]] [[Ceci n’est pas une pipe.]] [[El jardin de las Delicias]] [[I am Mr. Van Gogh]] [[The Great Wave off the Coast of Kanagawa]] [[The Birth of Venus]] [[Girl with a Pearl Earring]] [[The Kiss]] [[I am an old Microphone]] [[Mona Lisa]] [[I am one of that guy's paintings]] [[I am a Guitar]]" modified="20201208090322737" title="$:/state/muuri/tiddlers/z-indices">
 <pre></pre>
 </div>
-<div created="20201206090858207" modified="20201207123105511" title="$:/state/sidebar">
+<div created="20201206090858207" modified="20201208090322480" title="$:/state/sidebar">
 <pre>no</pre>
 </div>
 <div created="20201206090823409" modified="20201206090823410" title="$:/state/tab--1963855381">
@@ -12184,13 +12191,13 @@ exports.muuri = MuuriStoryView;
 <div created="20201207121538705" modified="20201207121538705" title="$:/state/tab/moresidebar-1850697562">
 <pre>$:/core/ui/MoreSideBar/Plugins</pre>
 </div>
-<div created="20201206090733652" modified="20201207123028106" title="$:/state/tab/sidebar--595412856">
+<div created="20201206090733652" modified="20201208090321447" title="$:/state/tab/sidebar--595412856">
 <pre>$:/core/ui/SideBar/Open</pre>
 </div>
 <div title="$:/status/RequireReloadDueToPluginChange">
 <pre>no</pre>
 </div>
-<div created="20201207123036605" list="[[Mona Lisa]] [[Girl with a Pearl Earring]] [[I am Mr. Van Gogh]] [[This Louvre moment]] [[Ceci n’est pas une pipe.]] [[The Great Wave off the Coast of Kanagawa]] [[The Kiss]] [[I am one of that guy's paintings]] [[El jardin de las Delicias]] [[The Birth of Venus]] [[I am an old Microphone]] [[I am a Guitar]]" modified="20201207123102485" title="$:/StoryList">
+<div created="20201208090307126" list="[[Mona Lisa]] [[Girl with a Pearl Earring]] [[I am Mr. Van Gogh]] [[This Louvre moment]] [[Ceci n’est pas une pipe.]] [[The Great Wave off the Coast of Kanagawa]] [[The Kiss]] [[I am one of that guy's paintings]] [[El jardin de las Delicias]] [[The Birth of Venus]] [[I am an old Microphone]] [[I am a Guitar]]" modified="20201208090310008" title="$:/StoryList">
 <pre></pre>
 </div>
 <div created="20200913082411339" list="" modified="20201009153240736" tags="" title="$:/StoryList2">

@@ -390,8 +390,15 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 		},
 		layoutEasing: easing,
 		dragStartPredicate: function (item,e) {
+			var items = self.muuri.getItems(),
+				isReleasing = false;
+			for (var i=0; i<items.length; i++) {
+				if(items[i].isDragging() || items[i].isReleasing() || items[i].isShowing() || items[i].isHiding() || items[i].isPositioning()) {
+					isReleasing = true;
+				}
+			}
 			if (self.muuri._settings.dragEnabled) {
-				if((e.target && e.target.tagName && (self.noDragTags.indexOf(e.target.tagName) > -1 || self.lookupDragTarget(e.target)) || self.detectWithinCodemirror(e) || !self.detectGridWithinGrid(e.target))) {
+				if(isReleasing || (e.target && e.target.tagName && (self.noDragTags.indexOf(e.target.tagName) > -1 || self.lookupDragTarget(e.target)) || self.detectWithinCodemirror(e) || !self.detectGridWithinGrid(e.target))) {
 					return false;
 				} else {
 					return Muuri.ItemDrag.defaultStartPredicate(item,e);
