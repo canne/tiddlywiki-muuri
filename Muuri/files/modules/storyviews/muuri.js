@@ -80,8 +80,16 @@ var MuuriStoryView = function(listWidget) {
 	.on("receive", function(data) {
 	})
 	.on("beforeSend", function(data) {
+		data.fromGrid.refreshItems();
+		data.toGrid.refreshItems();
+		data.fromGrid.layout();
+		data.toGrid.layout();
 	})
 	.on("beforeReceive", function(data) {
+		data.fromGrid.refreshItems();
+		data.toGrid.refreshItems();
+		data.fromGrid.layout();
+		data.toGrid.layout();
 	});
 };
 
