@@ -50,8 +50,10 @@ var MuuriStoryView = function(listWidget) {
 		self.onDragReleaseEnd(item);
 	})
 	.on("add", function(items) {
+		self.updateZIndexList();
 	})
 	.on("remove", function(items) {
+		self.updateZIndexList();
 	})
 	.on("dragEnd", function(item, event) {
 		self.restoreIframeEvents();
