@@ -76,15 +76,26 @@ var MuuriStoryView = function(listWidget) {
 		self.inheritIframeEvents();
 	})
 	.on("send", function(data) {
+		self.updateConnectedGrids();
 	})
 	.on("receive", function(data) {
+		self.updateConnectedGrids();
 	})
 	.on("beforeSend", function(data) {
-		data.fromGrid.refreshItems();
-		data.fromGrid.layout();
+		self.updateConnectedGrids();
 	})
 	.on("beforeReceive", function(data) {
+		self.updateConnectedGrids();
 	});
+};
+
+MuuriStoryView.prototype.updateConnectedGrids = function() {
+	for(var i=0; i<this.connectedGrids.length; i++) {
+		var grid = this.connectedGrids[i];
+		grid.refreshItems();
+		grid._refreshDimensions();
+		grid.layout();
+	}
 };
 
 MuuriStoryView.prototype.findConnectedGrids = function() {
