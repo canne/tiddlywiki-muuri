@@ -183,6 +183,8 @@ Error message and password prompt
 
 <li>$:/plugins/BTC/Muuri</li>
 
+<li>$:/plugins/BTC/Muuri/css</li>
+
 <li>$:/plugins/BTC/Muuri/modules/storyviews/muuri.js</li>
 
 <li>$:/plugins/tiddlywiki/codemirror</li>
@@ -10745,6 +10747,295 @@ Error message and password prompt
     }
 }</pre>
 </div>
+<div created="20201015190817028" modified="20201208091403674" tags="$:/tags/Stylesheet" title="$:/plugins/BTC/Muuri/css">
+<pre>title: $:/plugins/BTC/Muuri/css
+tags: $:/tags/Stylesheet
+
+\define z-indices()
+\rules only
+.tc-story-river.tc-muuri-river &gt; [data-tiddler-title=&quot;$(cssEscapedTiddler)$&quot;].tc-tiddler-frame:not(.tc-muuri-dragging):not(.tc-muuri-positioning) {
+	z-index: $(zIndex)$;
+}
+\end
+
+.tc-muuri-dragging {
+z-index: 1;
+}
+
+.muuri-item-shown {
+position: absolute;
+}
+
+&lt;$reveal state=&quot;$:/view&quot; type=&quot;match&quot; text=&quot;muuri&quot;&gt;
+
+&lt;$vars count={{{ [{$:/state/config/muuri/storyview/columns}] ~[[1]] }}} margin={{$:/config/muuri/tiddler/margin}} marginSuffix={{{ [{$:/state/config/muuri/storyview/align-right}match[yes]addprefix[right]removesuffix[yes]] ~[[$:/state/config/muuri/storyview/align-right]is[missing]then[right]] ~[[left]] }}} sidebarBreakPoint={{$:/themes/tiddlywiki/vanilla/metrics/sidebarbreakpoint}} marginBottom={{$:/config/muuri/tiddler/margin-bottom}} storyHighZIndex={{{ [list[$:/StoryList]count[]add[201]] }}}&gt;
+
+@media(min-width:&lt;&lt;sidebarBreakPoint&gt;&gt;) {
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame {
+	position: absolute;
+}
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame {
+width: calc((100% / &lt;&lt;count&gt;&gt;) - &lt;&lt;margin&gt;&gt; - (&lt;&lt;margin&gt;&gt; / &lt;&lt;count&gt;&gt;));
+margin-&lt;&lt;marginSuffix&gt;&gt;: &lt;&lt;margin&gt;&gt;;
+margin-bottom: &lt;&lt;marginBottom&gt;&gt;;
+}
+
+.tc-story-river.tc-muuri-river {
+margin-top: {{$:/config/muuri/storyview/story-river/margin-top}};
+}
+
+	.tc-sidebar-scrollable {
+		padding-left: calc(42px - &lt;&lt;margin&gt;&gt;);
+	}
+
+&lt;$reveal state=&quot;$:/state/config/muuri/storyview/columns&quot; type=&quot;gt&quot; text=&quot;2&quot;&gt;
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame .tc-tiddler-info {
+padding: 0;
+}
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame button.tc-fold-banner, .tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame button.tc-unfold-banner {
+margin-left: -29px;
+}
+
+&lt;$reveal state=&quot;$:/state/config/muuri/storyview/columns&quot; type=&quot;lt&quot; text=&quot;5&quot;&gt;
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame {
+padding: 2em;
+}
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame .tc-tiddler-info {
+margin: 0 -2em 0 -2em;
+}
+
+&lt;/$reveal&gt;
+
+&lt;$reveal state=&quot;$:/state/config/muuri/storyview/columns&quot; type=&quot;gteq&quot; text=&quot;5&quot;&gt;
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame {
+padding: 1em;
+}
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame .tc-tiddler-info {
+margin: 0 -1em 0 -1em;
+}
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame button.tc-fold-banner, .tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame button.tc-unfold-banner {
+margin-left: -15px;
+}
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame button.tc-unfold-banner {
+margin-top: -6px;
+}
+
+&lt;/$reveal&gt;
+
+&lt;/$reveal&gt;
+
+&lt;$reveal state=&quot;$:/themes/tiddlywiki/vanilla/options/sidebarlayout&quot; type=&quot;match&quot; text=&quot;fixed-fluid&quot;&gt;
+
+.tc-sidebar-scrollable {
+left: calc({{$:/themes/tiddlywiki/vanilla/metrics/storyright}} + 42px);
+}
+
+	&lt;$reveal state=&quot;$:/state/sidebar&quot; type=&quot;nomatch&quot; text=&quot;no&quot;&gt;
+
+			.tc-story-river.tc-muuri-river {
+				width: {{$:/themes/tiddlywiki/vanilla/metrics/storywidth}};
+			}
+
+	&lt;/$reveal&gt;
+
+&lt;/$reveal&gt;
+
+	.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame button.tc-fold-banner, .tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame button.tc-unfold-banner {
+		z-index: -1;
+	}
+
+}
+
+@media(max-width:&lt;&lt;sidebarBreakPoint&gt;&gt;) {
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame {
+	position: absolute;
+}
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame {
+width: calc((100% / 2) - &lt;&lt;margin&gt;&gt; - (&lt;&lt;margin&gt;&gt; / 2));
+margin-&lt;&lt;marginSuffix&gt;&gt;: &lt;&lt;margin&gt;&gt;;
+margin-bottom: &lt;&lt;marginBottom&gt;&gt;;
+}
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame .tc-titlebar {
+font-size: 1.5em;
+}
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame .tc-titlebar .tc-tiddler-controls .tc-drop-down {
+font-size: 1em;
+}
+
+.tc-story-river.tc-muuri-river {
+margin-top: {{$:/config/muuri/storyview/story-river/margin-top}};
+}
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame .tc-tiddler-info {
+padding: 0;
+}
+
+&lt;$reveal state=&quot;$:/state/sidebar&quot; type=&quot;match&quot; text=&quot;no&quot;&gt;
+
+.tc-sidebar-scrollable {
+display: none;
+}
+
+&lt;/$reveal&gt;
+
+	.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame button.tc-fold-banner, .tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame button.tc-unfold-banner {
+		z-index: -1;
+	}
+
+}
+
+&lt;$reveal state=&quot;$:/state/config/muuri/storyview/select-text&quot; type=&quot;nomatch&quot; text=&quot;yes&quot;&gt;
+
+	.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame img {
+		pointer-events: none;
+	}
+
+&lt;/$reveal&gt;
+
+&lt;$reveal state=&quot;$:/state/config/muuri/storyview/fill-gaps&quot; type=&quot;match&quot; text=&quot;yes&quot;&gt;
+
+	@media (min-width: &lt;&lt;sidebarBreakPoint&gt;&gt;) {
+		.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame {
+			width: calc(100% / &lt;&lt;count&gt;&gt;);
+		}
+		
+		.tc-story-river.tc-muuri-river {
+			margin-top: 0;
+		}
+	}
+	
+	@media (max-width: &lt;&lt;sidebarBreakPoint&gt;&gt;) {
+		.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame {
+			width: calc(100% / 2);
+		}
+
+		.tc-story-river.tc-muuri-river {
+			margin-top: 0;
+		}
+	}
+	
+	@media(min-width:&lt;&lt;sidebarBreakPoint&gt;&gt;) {
+	
+	.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame {
+		border: none;
+		border-radius: 0px;
+		box-shadow: 1px 1px 1px &lt;&lt;colour tiddler-background&gt;&gt;;
+		-webkit-box-shadow: 1px 1px 1px &lt;&lt;colour tiddler-background&gt;&gt;;
+		-moz-box-shadow: 1px 1px 1px &lt;&lt;colour tiddler-background&gt;&gt;;
+		margin-top: 0em;
+		margin-left: 0em;
+		margin-right: 0em;
+		margin-bottom: 0em;
+	}
+
+}
+
+	@media(max-width:&lt;&lt;sidebarBreakPoint&gt;&gt;) {
+	
+	.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame {
+		border: none;
+		border-radius: 0px;
+		box-shadow: 1px 1px 1px &lt;&lt;colour tiddler-background&gt;&gt;;
+		-webkit-box-shadow: 1px 1px 1px &lt;&lt;colour tiddler-background&gt;&gt;;
+		-moz-box-shadow: 1px 1px 1px &lt;&lt;colour tiddler-background&gt;&gt;;
+		margin-top: 0em;
+		margin-left: 0em;
+		margin-right: 0em;
+		margin-bottom: 0em;
+	}
+
+}
+
+&lt;/$reveal&gt;
+
+&lt;$reveal state=&quot;$:/state/config/muuri/storyview/select-text&quot; type=&quot;match&quot; text=&quot;yes&quot;&gt;
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame {
+	touch-action: auto !important;
+	user-select: auto !important;
+	-ms-user-select: text !important;
+	-moz-user-select: text !important;
+	-webkit-user-select: text !important;
+}
+
+&lt;/$reveal&gt;
+
+&lt;$list filter=&quot;[all[tiddlers]prefix[$:/state/popup/more-]limit[1]]&quot;&gt;
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame .tc-tag-list-item {
+z-index: -1;
+}
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame [data-grid=&quot;muuri&quot;] {
+z-index: -1 !important;
+}
+
+&lt;/$list&gt;
+
+.tc-story-river.tc-muuri-river {
+	padding: 0;
+}
+
+&lt;$reveal state=&quot;$:/themes/tiddlywiki/vanilla/options/stickytitles&quot; type=&quot;match&quot; text=&quot;yes&quot;&gt;
+
+		/*
+		position: sticky doesn't work well in the muuri view, it's disabled
+		*/
+	.tc-tiddler-title {
+		position: initial;
+		top: initial;
+		background: initial;
+	}
+
+&lt;/$reveal&gt;
+
+	&lt;$list filter=&quot;[list[$:/state/muuri/tiddlers/z-indices]]&quot; variable=&quot;zIndexTiddler&quot;&gt;
+
+		&lt;$set name=&quot;zIndex&quot; value={{{[list[$:/state/muuri/tiddlers/z-indices]allafter&lt;zIndexTiddler&gt;] +[count[]] }}}&gt;
+
+			&lt;$set name=&quot;cssEscapedTiddler&quot; value={{{ [&lt;zIndexTiddler&gt;escapecss[]] }}}&gt;
+
+				&lt;&lt;z-indices&gt;&gt;
+
+			&lt;/$set&gt;
+
+		&lt;/$set&gt;
+
+	&lt;/$list&gt;
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame.tc-muuri-dragging, .tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame.tc-muuri-releasing {
+	z-index: &lt;&lt;storyHighZIndex&gt;&gt;;
+}
+
+&lt;$reveal state=&quot;$:/state/config/muuri/storyview/hide-titles-tags&quot; type=&quot;match&quot; text=&quot;yes&quot;&gt;
+
+.tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame .tc-titlebar, .tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame .tc-subtitle, .tc-story-river.tc-muuri-river &gt; .tc-tiddler-frame .tc-tags-wrapper {
+display: none;
+}
+
+&lt;/$reveal&gt;
+
+&lt;/$reveal&gt;
+
+&lt;/$vars&gt;
+
+&lt;/$reveal&gt;
+</pre>
+</div>
 <div created="20200823113928572" modified="20201208090314952" module-type="storyview" tags="" title="$:/plugins/BTC/Muuri/modules/storyviews/muuri.js" type="application/javascript">
 <pre>/*\
 title: $:/plugins/BTC/Muuri/modules/storyviews/muuri.js
@@ -12176,28 +12467,28 @@ exports.muuri = MuuriStoryView;
 <div created="20201206090743532" modified="20201206090756673" title="$:/state/config/muuri/storyview/columns">
 <pre>4</pre>
 </div>
-<div created="20201206090726967" list="[[This Louvre moment]] [[Ceci n’est pas une pipe.]] [[El jardin de las Delicias]] [[I am Mr. Van Gogh]] [[The Great Wave off the Coast of Kanagawa]] [[The Birth of Venus]] [[Girl with a Pearl Earring]] [[The Kiss]] [[I am an old Microphone]] [[Mona Lisa]] [[I am one of that guy's paintings]] [[I am a Guitar]]" modified="20201208090322737" title="$:/state/muuri/tiddlers/z-indices">
+<div created="20201206090726967" list="[[This Louvre moment]] [[Ceci n’est pas une pipe.]] [[El jardin de las Delicias]] [[I am Mr. Van Gogh]] [[The Great Wave off the Coast of Kanagawa]] [[The Birth of Venus]] [[Girl with a Pearl Earring]] [[The Kiss]] [[I am an old Microphone]] [[Mona Lisa]] [[I am one of that guy's paintings]] [[I am a Guitar]]" modified="20201208091447274" title="$:/state/muuri/tiddlers/z-indices">
 <pre></pre>
 </div>
-<div created="20201206090858207" modified="20201208090322480" title="$:/state/sidebar">
+<div created="20201206090858207" modified="20201208091446971" title="$:/state/sidebar">
 <pre>no</pre>
 </div>
-<div created="20201206090823409" modified="20201206090823410" title="$:/state/tab--1963855381">
-<pre>$:/core/ui/ControlPanel/Palette</pre>
+<div created="20201206090823409" modified="20201208091009888" title="$:/state/tab--1963855381">
+<pre>$:/plugins/BTC/Muuri/ui/ControlPanel/Appearance</pre>
 </div>
 <div created="20201206090822490" modified="20201206090822490" title="$:/state/tab-1749438307">
 <pre>$:/core/ui/ControlPanel/Appearance</pre>
 </div>
-<div created="20201207121538705" modified="20201207121538705" title="$:/state/tab/moresidebar-1850697562">
-<pre>$:/core/ui/MoreSideBar/Plugins</pre>
+<div created="20201207121538705" modified="20201208090949935" title="$:/state/tab/moresidebar-1850697562">
+<pre>$:/core/ui/MoreSideBar/System</pre>
 </div>
-<div created="20201206090733652" modified="20201208090321447" title="$:/state/tab/sidebar--595412856">
+<div created="20201206090733652" modified="20201208091409609" title="$:/state/tab/sidebar--595412856">
 <pre>$:/core/ui/SideBar/Open</pre>
 </div>
 <div title="$:/status/RequireReloadDueToPluginChange">
 <pre>no</pre>
 </div>
-<div created="20201208090307126" list="[[Mona Lisa]] [[Girl with a Pearl Earring]] [[I am Mr. Van Gogh]] [[This Louvre moment]] [[Ceci n’est pas une pipe.]] [[The Great Wave off the Coast of Kanagawa]] [[The Kiss]] [[I am one of that guy's paintings]] [[El jardin de las Delicias]] [[The Birth of Venus]] [[I am an old Microphone]] [[I am a Guitar]]" modified="20201208090310008" title="$:/StoryList">
+<div created="20201208091422295" list="[[Mona Lisa]] [[Girl with a Pearl Earring]] [[I am Mr. Van Gogh]] [[This Louvre moment]] [[Ceci n’est pas une pipe.]] [[The Great Wave off the Coast of Kanagawa]] [[The Kiss]] [[I am one of that guy's paintings]] [[El jardin de las Delicias]] [[The Birth of Venus]] [[I am an old Microphone]] [[I am a Guitar]]" modified="20201208091441654" title="$:/StoryList">
 <pre></pre>
 </div>
 <div created="20200913082411339" list="" modified="20201009153240736" tags="" title="$:/StoryList2">
