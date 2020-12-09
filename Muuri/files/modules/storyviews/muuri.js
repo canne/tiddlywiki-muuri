@@ -43,7 +43,7 @@ var MuuriStoryView = function(listWidget) {
 
 	this.getMuuriAttributes();
 	this.createMuuriGrid();
-	
+
 	this.addToGlobalGrids();
 
 	this.muuri.on("dragReleaseEnd",function(item) {
@@ -322,7 +322,7 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 		dragHandle = null;
 	}
 	this.dragHandle = dragHandle;
-//	this.fillGaps = this.listWidget.getAttribute("fillGaps",this.listWidget.wiki.getTiddlerText(SEAMLESS_CONFIG)) === "yes";
+    // this.fillGaps = this.listWidget.getAttribute("fillGaps",this.listWidget.wiki.getTiddlerText(SEAMLESS_CONFIG)) === "yes";
 	this.alignRight = this.listWidget.getAttribute("alignRight",this.listWidget.wiki.getTiddlerText(ALIGNRIGHT_CONFIG)) !== "no";
 	this.alignBottom = this.listWidget.getAttribute("alignBottom",this.listWidget.wiki.getTiddlerText(ALIGNBOTTOM_CONFIG)) === "yes";
 	this.dragEnabled = this.listWidget.getAttribute("selectText",this.listWidget.wiki.getTiddlerText(SELECTTEXT_CONFIG)) !== "yes";
@@ -332,6 +332,7 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 	this.horizontal = false;
 	this.itemTemplate = this.listWidget.getAttribute("template");
 	this.itemEditTemplate = this.listWidget.getAttribute("editTemplate");
+    this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
 }
 
 MuuriStoryView.prototype.createMuuriGrid = function() {
@@ -372,14 +373,66 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 		items: self.itemSelector,
 		dragEnabled: self.dragEnabled,
 		dragHandle: self.dragHandle,
-		layout: {
-			fillGaps: false,
-			horizontal: self.horizontal,
-			alignRight: self.alignRight,
-			alignBottom: self.alignBottom,
-			rounding: self.rounding
-		},
-		dragSortPredicate: {
+        columns: self.columns,
+		// layout: {
+		// 	fillGaps: false,
+		// 	horizontal: self.horizontal,
+		// 	alignRight: self.alignRight,
+		// 	alignBottom: self.alignBottom,
+		// 	rounding: self.rounding
+		// },
+        layout: function (grid, layoutId, items, width, height, callback) {
+            var layout = {
+            id: layoutId,
+            items: items,
+            slots: [],
+            styles: {},
+          };
+
+          var item,
+            m,
+            x = 0,
+            y = 0,
+            w = 0,
+            h = 0,
+            iteminarow = 0,
+            rowmaxheight = 0;
+         // console.log("layout for columns: " + self.columns);
+
+          for (var i = 0; i < items.length; i++) {
+              iteminarow++;
+              if ( iteminarow > self.columns ) {
+                iteminarow = 1;
+                y += rowmaxheight;
+                rowmaxheight = 0;
+                x = 0;
+              }
+              else {
+                    x += w;
+              }
+              item = items[i];
+              m = item.getMargin();
+              h = item.getHeight() + m.top + m.bottom;
+              if ( rowmaxheight < h )
+                rowmaxheight = h;
+              w = item.getWidth() + m.left + m.right;
+              layout.slots.push(x, y);
+          }
+
+          // w += x;
+          // h += y;
+
+          // Set the CSS styles that should be applied
+          // to the grid element.
+          // layout.styles.width = w + 'px';
+          // layout.styles.height = h + 'px';
+
+          // When the layout is fully computed
+          // let's call the callback function and
+          // provide the layout object as it's argument.
+          callback(layout);
+        },
+        dragSortPredicate: {
 			action: self.dragSortAction,
 			threshold: self.dragSortThreshold
 		},
@@ -407,7 +460,7 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 		itemDraggingClass: "tc-muuri-dragging",
 		itemReleasingClass: "tc-muuri-releasing",
 		itemPositioningClass: "tc-muuri-positioning"
-	};
+    };
 };
 
 MuuriStoryView.prototype.detectWithinCodemirror = function(event) {
@@ -443,7 +496,7 @@ MuuriStoryView.prototype.detectGridWithinGrid = function(element) {
 	var elementChildNodes = element.childNodes;
 	var isCurrentGrid = false,
 		foundGrid = false;
-	
+
 	if(elementChildNodes.length === 0) {
 		return true;
 	}
@@ -525,6 +578,7 @@ MuuriStoryView.prototype.removeResizeListener = function(element,fn) {
 
 MuuriStoryView.prototype.refreshMuuriGrid = function(item) {
 	var self = this;
+    this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
 	this.muuri.refreshItems();
 	this.muuri._refreshDimensions();
 	this.muuri.layout(); //no .layout(true), make tiddlers move, not jump instantly
@@ -601,6 +655,7 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 		this.muuri._settings.showDuration = this.muuri._settings.layoutDuration = this.animationDuration = $tw.utils.getAnimationDuration();
 	}
 	if(changedTiddlers[COLUMN_CONFIG]) {
+        this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
 		this.muuri.refreshItems();
 		this.muuri.layout();
 		this.muuri.synchronize();
@@ -631,13 +686,13 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 	if(changedTiddlers[SEAMLESS_CONFIG]) {
 		this.muuri.refreshItems();
 		this.muuri._refreshDimensions();
-		this.muuri.layout();		
+		this.muuri.layout();
 	}
 	if(changedTiddlers[DRAGSORTACTION_CONFIG] || changedAttributes.dragSortAction) {
 		this.muuri._settings.dragSortPredicate.action = this.dragSortAction = this.listWidget.getAttribute("dragSortAction",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTACTION_CONFIG) : "move");
 	}
 	if(changedTiddlers[DRAGSORTTHRESHOLD_CONFIG] || changedAttributes.dragSortThreshold) {
-		this.muuri._settings.dragSortPredicate.threshold = this.dragSortThreshold = parseInt(this.listWidget.getAttribute("dragSortThreshold",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTTHRESHOLD_CONFIG) : "40"));		
+		this.muuri._settings.dragSortPredicate.threshold = this.dragSortThreshold = parseInt(this.listWidget.getAttribute("dragSortThreshold",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTTHRESHOLD_CONFIG) : "40"));
 	}
 	if(changedTiddlers[this.itemTemplate] || changedTiddlers[this.itemEditTemplate]) {
 		setTimeout(function(){
