@@ -21,18 +21,19 @@ tags: $:/tags/ControlPanel/Appearance
 
 <$edit-text tag="input" tiddler="$:/config/muuri/storyview/dragsort-threshold" default="" placeholder="threshold"/>
 
-//<small>Align right:</small>//
+//<small>Align left/right:</small>//
 
 <$select tiddler="$:/state/config/muuri/storyview/align-right" default="yes">
-<option value="no">no</option>
-<option value="yes">yes</option>
+<option value="no">left</option>
+<option value="yes">right</option>
 </$select>
 
-//<small>Align bottom:</small>//
+//<small>Align top/bottom/rows:</small>//
 
-<$select tiddler="$:/state/config/muuri/storyview/align-bottom" default="no">
-<option value="no">no</option>
-<option value="yes">yes</option>
+<$select tiddler="$:/state/config/muuri/storyview/align-bottom" default="0">
+<option value="0">top</option>
+<option value="1">bottom</option>
+<option value="2">rows</option>
 </$select>
 
 //<small>Gapless story view:</small>//
@@ -55,4 +56,3 @@ tags: $:/tags/ControlPanel/Appearance
 <option value="move">move</option>
 <option value="swap">swap</option>
 </$select>
-

@@ -297,6 +297,18 @@ MuuriStoryView.prototype.synchronizeGrid = function() {
 	}
 };
 
+MuuriStoryView.prototype.getMuuriAlignmentAttributes = function() {
+    this.alignRight = this.listWidget.getAttribute("alignRight",this.listWidget.wiki.getTiddlerText(ALIGNRIGHT_CONFIG)) !== "no";
+    this.alignSelect = this.listWidget.wiki.getTiddlerText(ALIGNBOTTOM_CONFIG);
+    this.alignRows = false;
+    this.alignBottom = false;
+    if ( this.alignSelect === "1" )
+	   this.alignBottom = true;
+    else if ( this.alignSelect === "2" )
+        this.alignRows = true;
+    console.log("getMuuriAlignmentAttributes(), alignSelect : " + this.alignSelect + " alignBottom: " + this.alignBottom + " alignRows: " + this.alignRows);
+};
+
 MuuriStoryView.prototype.getMuuriAttributes = function() {
 	this.animationDuration = $tw.utils.getAnimationDuration();
 	this.attachEvent = this.listWidget.document.attachEvent;
@@ -323,8 +335,7 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 	}
 	this.dragHandle = dragHandle;
     // this.fillGaps = this.listWidget.getAttribute("fillGaps",this.listWidget.wiki.getTiddlerText(SEAMLESS_CONFIG)) === "yes";
-	this.alignRight = this.listWidget.getAttribute("alignRight",this.listWidget.wiki.getTiddlerText(ALIGNRIGHT_CONFIG)) !== "no";
-	this.alignBottom = this.listWidget.getAttribute("alignBottom",this.listWidget.wiki.getTiddlerText(ALIGNBOTTOM_CONFIG)) === "yes";
+    this.getMuuriAlignmentAttributes();
 	this.dragEnabled = this.listWidget.getAttribute("selectText",this.listWidget.wiki.getTiddlerText(SELECTTEXT_CONFIG)) !== "yes";
 	this.storyListTitle = this.listWidget.getAttribute("storyList","$:/StoryList");
 	this.storyListField = this.listWidget.getAttribute("storyListField","list");
@@ -332,7 +343,7 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 	this.horizontal = false;
 	this.itemTemplate = this.listWidget.getAttribute("template");
 	this.itemEditTemplate = this.listWidget.getAttribute("editTemplate");
-    this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
+    this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) === "1" );
 }
 
 MuuriStoryView.prototype.createMuuriGrid = function() {
@@ -369,19 +380,19 @@ MuuriStoryView.prototype.createMuuriGrid = function() {
 
 MuuriStoryView.prototype.collectMuuriOptions = function() {
 	var self = this;
+    console.log("collectMuuriOptions(), alignRows: " + self.alignRows);
 	return {
 		items: self.itemSelector,
 		dragEnabled: self.dragEnabled,
 		dragHandle: self.dragHandle,
         columns: self.columns,
-		// layout: {
-		// 	fillGaps: false,
-		// 	horizontal: self.horizontal,
-		// 	alignRight: self.alignRight,
-		// 	alignBottom: self.alignBottom,
-		// 	rounding: self.rounding
-		// },
-        layout: function (grid, layoutId, items, width, height, callback) {
+        layout: !self.alignRows ? {
+			fillGaps: false,
+			horizontal: self.horizontal,
+			alignRight: self.alignRight,
+			alignBottom: self.alignBottom,
+			rounding: self.rounding
+		} : function (grid, layoutId, items, width, height, callback) {
             var layout = {
             id: layoutId,
             items: items,
@@ -397,7 +408,7 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
             h = 0,
             iteminarow = 0,
             rowmaxheight = 0;
-         // console.log("layout for columns: " + self.columns);
+         console.log("layout for columns: " + self.columns);
 
           for (var i = 0; i < items.length; i++) {
               iteminarow++;
@@ -418,15 +429,6 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
               w = item.getWidth() + m.left + m.right;
               layout.slots.push(x, y);
           }
-
-          // w += x;
-          // h += y;
-
-          // Set the CSS styles that should be applied
-          // to the grid element.
-          // layout.styles.width = w + 'px';
-          // layout.styles.height = h + 'px';
-
           // When the layout is fully computed
           // let's call the callback function and
           // provide the layout object as it's argument.
@@ -678,7 +680,9 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 		this.muuri.layout();
 	}
 	if(changedTiddlers[ALIGNBOTTOM_CONFIG] || changedAttributes.alignBottom) {
-		this.muuri._settings.layout.alignBottom = this.alignBottom = this.listWidget.getAttribute("alignBottom",this.listWidget.wiki.getTiddlerText(ALIGNBOTTOM_CONFIG)) === "yes";
+        this.getMuuriAlignmentAttributes();
+        console.log("muuriRefresh(), alignSelect : " + this.alignSelect + " alignBottom: " + this.alignBottom + " alignRows: " + this.alignRows);
+		this.muuri._settings.layout.alignBottom = this.alignBottom;
 		this.muuri.refreshItems();
 		this.muuri._refreshDimensions();
 		this.muuri.layout();
