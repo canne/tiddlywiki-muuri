@@ -298,15 +298,19 @@ MuuriStoryView.prototype.synchronizeGrid = function() {
 };
 
 MuuriStoryView.prototype.getMuuriAlignmentAttributes = function() {
+    this.alignmentLayoutMethodChange = false;
     this.alignRight = this.listWidget.getAttribute("alignRight",this.listWidget.wiki.getTiddlerText(ALIGNRIGHT_CONFIG)) !== "no";
     this.alignSelect = this.listWidget.wiki.getTiddlerText(ALIGNBOTTOM_CONFIG);
-    this.alignRows = false;
     this.alignBottom = false;
+    var prevAlignRows = this.alignRows;
+    this.alignRows = false;
     if ( this.alignSelect === "1" )
 	   this.alignBottom = true;
     else if ( this.alignSelect === "2" )
         this.alignRows = true;
-    console.log("getMuuriAlignmentAttributes(), alignSelect : " + this.alignSelect + " alignBottom: " + this.alignBottom + " alignRows: " + this.alignRows);
+    if ( this.alignRows !== prevAlignRows )
+        this.alignmentLayoutMethodChange = true;
+    console.log("getMuuriAlignmentAttributes(), alignSelect : " + this.alignSelect + " alignBottom: " + this.alignBottom + " alignRows: " + this.alignRows + " alignmentLayoutMethodChange: " + this.alignmentLayoutMethodChange);
 };
 
 MuuriStoryView.prototype.getMuuriAttributes = function() {
@@ -343,7 +347,8 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 	this.horizontal = false;
 	this.itemTemplate = this.listWidget.getAttribute("template");
 	this.itemEditTemplate = this.listWidget.getAttribute("editTemplate");
-    this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) === "1" );
+    this.columns = parseInt( this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG) );
+    console.log("getMuuriAttributes() : columns: " + this.columns);
 }
 
 MuuriStoryView.prototype.createMuuriGrid = function() {
@@ -378,6 +383,61 @@ MuuriStoryView.prototype.createMuuriGrid = function() {
 	};
 };
 
+MuuriStoryView.prototype.muuriLayoutOptionDefault = function() {
+    var self = this;
+    return {
+        fillGaps: false,
+        horizontal: self.horizontal,
+        alignRight: self.alignRight,
+        alignBottom: self.alignBottom,
+        rounding: self.rounding
+    };
+};
+
+MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
+    var self = this;
+    return function (grid, layoutId, items, width, height, callback) {
+            var layout = {
+            id: layoutId,
+            items: items,
+            slots: [],
+            styles: {},
+        };
+        console.log("self.alignRows: " + self.alignRows);
+        var item,
+        m,
+        x = 0,
+        y = 0,
+        w = 0,
+        h = 0,
+        iteminarow = 0,
+        rowmaxheight = 0;
+        console.log("layout for columns: " + self.columns);
+        for ( var i = 0; i < items.length; i++ ) {
+            iteminarow++;
+            if ( iteminarow > self.columns ) {
+                iteminarow = 1;
+                y += rowmaxheight;
+                rowmaxheight = 0;
+                x = 0;
+            }
+            else {
+                x += w;
+            }
+            item = items[i];
+            m = item.getMargin();
+            h = item.getHeight() + m.top + m.bottom;
+            if ( rowmaxheight < h )
+                rowmaxheight = h;
+            w = item.getWidth() + m.left + m.right;
+            layout.slots.push(x, y);
+        };
+        // When the layout is fully computed
+        // let's call the callback function and
+        // provide the layout object as it's argument.
+        callback(layout);
+    };
+};
 MuuriStoryView.prototype.collectMuuriOptions = function() {
 	var self = this;
     console.log("collectMuuriOptions(), alignRows: " + self.alignRows);
@@ -386,54 +446,7 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 		dragEnabled: self.dragEnabled,
 		dragHandle: self.dragHandle,
         columns: self.columns,
-        layout: !self.alignRows ? {
-			fillGaps: false,
-			horizontal: self.horizontal,
-			alignRight: self.alignRight,
-			alignBottom: self.alignBottom,
-			rounding: self.rounding
-		} : function (grid, layoutId, items, width, height, callback) {
-            var layout = {
-            id: layoutId,
-            items: items,
-            slots: [],
-            styles: {},
-          };
-
-          var item,
-            m,
-            x = 0,
-            y = 0,
-            w = 0,
-            h = 0,
-            iteminarow = 0,
-            rowmaxheight = 0;
-         console.log("layout for columns: " + self.columns);
-
-          for (var i = 0; i < items.length; i++) {
-              iteminarow++;
-              if ( iteminarow > self.columns ) {
-                iteminarow = 1;
-                y += rowmaxheight;
-                rowmaxheight = 0;
-                x = 0;
-              }
-              else {
-                    x += w;
-              }
-              item = items[i];
-              m = item.getMargin();
-              h = item.getHeight() + m.top + m.bottom;
-              if ( rowmaxheight < h )
-                rowmaxheight = h;
-              w = item.getWidth() + m.left + m.right;
-              layout.slots.push(x, y);
-          }
-          // When the layout is fully computed
-          // let's call the callback function and
-          // provide the layout object as it's argument.
-          callback(layout);
-        },
+        layout: ( self.alignRows ? this.muuriLayoutOptionRows() : this.muuriLayoutOptionRows() ),
         dragSortPredicate: {
 			action: self.dragSortAction,
 			threshold: self.dragSortThreshold
@@ -608,7 +621,7 @@ MuuriStoryView.prototype.insert = function(widget) {
 		this.muuri._items.splice(index,1);
 		this.muuri.refreshItems();
 	}
-	this.muuri.add(targetElement,{index: targetIndex, instant: true});
+	this.muuri.add(targetElement,{index: targetIndex, layout: "instant"});
 	this.addResizeListener(targetElement,function() {
 		self.refreshMuuriGrid();
 	});
@@ -625,14 +638,15 @@ MuuriStoryView.prototype.remove = function(widget) {
 		removeElement();
 		return;
 	}
-	this.removeResizeListener(targetElement,function() {
+	removeElement();
+    this.removeResizeListener(targetElement,function() {
 		self.refreshMuuriGrid();
 	});
-	removeElement();
-	this.muuri.refreshItems();
-	this.muuri.remove([targetElement],{removeElements: true});
-	this.muuri.layout();
 	this.refreshItemTitlesArray();
+    this.muuri.refreshItems();
+	this.muuri.remove([targetElement],{removeElements: true, layout: false});
+    this.muuri._refreshDimensions();
+    this.muuri.layout();
 };
 
 MuuriStoryView.prototype.navigateTo = function(historyInfo) {
@@ -681,8 +695,19 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 	}
 	if(changedTiddlers[ALIGNBOTTOM_CONFIG] || changedAttributes.alignBottom) {
         this.getMuuriAlignmentAttributes();
-        console.log("muuriRefresh(), alignSelect : " + this.alignSelect + " alignBottom: " + this.alignBottom + " alignRows: " + this.alignRows);
-		this.muuri._settings.layout.alignBottom = this.alignBottom;
+        console.log("muuriRefresh(), alignSelect : " + this.alignSelect + " alignBottom: " + this.alignBottom + " alignRows: " + this.alignRows + " alignmentLayoutMethodChange: " + this.alignmentLayoutMethodChange);
+        if ( this.alignmentLayoutMethodChange ) {
+            if ( this.alignRows ) {
+                this.muuri._settings.layout = this.muuriLayoutOptionRows();
+            }
+            else {
+                this.muuri._settings.layout = this.muuriLayoutOptionDefault();
+                this.muuri._settings.layout.alignBottom = this.alignBottom;
+            }
+         }
+         else {
+             this.muuri._settings.layout.alignBottom = this.alignBottom;
+         }
 		this.muuri.refreshItems();
 		this.muuri._refreshDimensions();
 		this.muuri.layout();
