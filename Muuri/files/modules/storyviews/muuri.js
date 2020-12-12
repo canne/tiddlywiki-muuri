@@ -310,7 +310,6 @@ MuuriStoryView.prototype.getMuuriAlignmentAttributes = function() {
         this.alignRows = true;
     if ( this.alignRows !== prevAlignRows )
         this.alignmentLayoutMethodChange = true;
-    console.log("getMuuriAlignmentAttributes(), alignSelect : " + this.alignSelect + " alignBottom: " + this.alignBottom + " alignRows: " + this.alignRows + " alignmentLayoutMethodChange: " + this.alignmentLayoutMethodChange);
 };
 
 MuuriStoryView.prototype.getMuuriAttributes = function() {
@@ -348,7 +347,6 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 	this.itemTemplate = this.listWidget.getAttribute("template");
 	this.itemEditTemplate = this.listWidget.getAttribute("editTemplate");
     this.columns = parseInt( this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG) );
-    console.log("getMuuriAttributes() : columns: " + this.columns);
 }
 
 MuuriStoryView.prototype.createMuuriGrid = function() {
@@ -403,7 +401,6 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
             slots: [],
             styles: {},
         };
-        console.log("self.alignRows: " + self.alignRows);
         var item,
         m,
         x = 0,
@@ -412,7 +409,6 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
         h = 0,
         iteminarow = 0,
         rowmaxheight = 0;
-        console.log("layout for columns: " + self.columns);
         for ( var i = 0; i < items.length; i++ ) {
             iteminarow++;
             if ( iteminarow > self.columns ) {
@@ -440,7 +436,6 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 };
 MuuriStoryView.prototype.collectMuuriOptions = function() {
 	var self = this;
-    console.log("collectMuuriOptions(), alignRows: " + self.alignRows);
 	return {
 		items: self.itemSelector,
 		dragEnabled: self.dragEnabled,
@@ -695,7 +690,6 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 	}
 	if(changedTiddlers[ALIGNBOTTOM_CONFIG] || changedAttributes.alignBottom) {
         this.getMuuriAlignmentAttributes();
-        console.log("muuriRefresh(), alignSelect : " + this.alignSelect + " alignBottom: " + this.alignBottom + " alignRows: " + this.alignRows + " alignmentLayoutMethodChange: " + this.alignmentLayoutMethodChange);
         if ( this.alignmentLayoutMethodChange ) {
             if ( this.alignRows ) {
                 this.muuri._settings.layout = this.muuriLayoutOptionRows();
