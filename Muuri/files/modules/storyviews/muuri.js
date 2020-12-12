@@ -15,12 +15,12 @@ Views the story as a muuri grid
 var easing = "cubic-bezier(0.215, 0.61, 0.355, 1)";
 
 var COLUMN_CONFIG = "$:/state/config/muuri/storyview/columns",
-		SEAMLESS_CONFIG = "$:/config/muuri/storyview/fill-gaps",
-		ALIGNRIGHT_CONFIG = "$:/state/config/muuri/storyview/align-right",
-		ALIGNBOTTOM_CONFIG = "$:/state/config/muuri/storyview/align-bottom",
-		DRAGSORTACTION_CONFIG = "$:/config/muuri/storyview/dragsort-action",
-		DRAGSORTTHRESHOLD_CONFIG ="$:/config/muuri/storyview/dragsort-threshold",
-		SELECTTEXT_CONFIG = "$:/state/config/muuri/storyview/select-text";
+	SEAMLESS_CONFIG = "$:/config/muuri/storyview/fill-gaps",
+	ALIGNRIGHT_CONFIG = "$:/state/config/muuri/storyview/align-right",
+	ALIGNBOTTOM_CONFIG = "$:/state/config/muuri/storyview/align-bottom",
+	DRAGSORTACTION_CONFIG = "$:/config/muuri/storyview/dragsort-action",
+	DRAGSORTTHRESHOLD_CONFIG ="$:/config/muuri/storyview/dragsort-threshold",
+	SELECTTEXT_CONFIG = "$:/state/config/muuri/storyview/select-text";
 
 if(typeof window !== "undefined") {
 	var testElement = document.body;
@@ -50,13 +50,16 @@ var MuuriStoryView = function(listWidget) {
 		self.onDragReleaseEnd(item);
 	})
 	.on("add", function(items) {
+		self.updateZIndexList();
 	})
 	.on("remove", function(items) {
+		self.updateZIndexList();
 	})
 	.on("dragEnd", function(item, event) {
 		self.restoreIframeEvents();
 	})
 	.on("dragStart", function(item, event) {
+		self.isDragging = true;
 		self.findConnectedGrids();
 	})
 	.on("layoutStart", function() {
@@ -73,13 +76,26 @@ var MuuriStoryView = function(listWidget) {
 		self.inheritIframeEvents();
 	})
 	.on("send", function(data) {
+		self.updateConnectedGrids();
 	})
 	.on("receive", function(data) {
+		self.updateConnectedGrids();
 	})
 	.on("beforeSend", function(data) {
+		self.updateConnectedGrids();
 	})
 	.on("beforeReceive", function(data) {
+		self.updateConnectedGrids();
 	});
+};
+
+MuuriStoryView.prototype.updateConnectedGrids = function() {
+	for(var i=0; i<this.connectedGrids.length; i++) {
+		var grid = this.connectedGrids[i];
+		grid.refreshItems();
+		grid._refreshDimensions();
+		grid.layout();
+	}
 };
 
 MuuriStoryView.prototype.findConnectedGrids = function() {
@@ -262,6 +278,7 @@ MuuriStoryView.prototype.getItemTitle = function(item) {
 };
 
 MuuriStoryView.prototype.onDragReleaseEnd = function(item) {
+	var self = this;
 	var items = this.muuri.getItems(),
 			isReleasing = false;
 	for (var i=0; i<items.length; i++) {
@@ -274,6 +291,9 @@ MuuriStoryView.prototype.onDragReleaseEnd = function(item) {
 		for(i=0; i<this.connectedGrids.length; i++) {
 			this.connectedGrids[i].synchronizeGrid();
 		}
+		setTimeout(function() {
+			self.isDragging = false;
+		},self.animationDuration);
 	}
 };
 
@@ -337,8 +357,9 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 		dragHandle = null;
 	}
 	this.dragHandle = dragHandle;
-    // this.fillGaps = this.listWidget.getAttribute("fillGaps",this.listWidget.wiki.getTiddlerText(SEAMLESS_CONFIG)) === "yes";
-    this.getMuuriAlignmentAttributes();
+//	this.fillGaps = this.listWidget.getAttribute("fillGaps",this.listWidget.wiki.getTiddlerText(SEAMLESS_CONFIG)) === "yes";
+	this.alignRight = this.listWidget.getAttribute("alignRight",this.listWidget.wiki.getTiddlerText(ALIGNRIGHT_CONFIG)) !== "no";
+	this.alignBottom = this.listWidget.getAttribute("alignBottom",this.listWidget.wiki.getTiddlerText(ALIGNBOTTOM_CONFIG)) === "yes";
 	this.dragEnabled = this.listWidget.getAttribute("selectText",this.listWidget.wiki.getTiddlerText(SELECTTEXT_CONFIG)) !== "yes";
 	this.storyListTitle = this.listWidget.getAttribute("storyList","$:/StoryList");
 	this.storyListField = this.listWidget.getAttribute("storyListField","list");
@@ -346,7 +367,7 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 	this.horizontal = false;
 	this.itemTemplate = this.listWidget.getAttribute("template");
 	this.itemEditTemplate = this.listWidget.getAttribute("editTemplate");
-    this.columns = parseInt( this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG) );
+        this.columns = parseInt( this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG) );
 }
 
 MuuriStoryView.prototype.createMuuriGrid = function() {
@@ -448,8 +469,15 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 		},
 		layoutEasing: easing,
 		dragStartPredicate: function (item,e) {
+			var items = self.muuri.getItems(),
+				isReleasing = false;
+			for (var i=0; i<items.length; i++) {
+				if(items[i].isDragging() || items[i].isReleasing() || items[i].isShowing() || items[i].isHiding() || items[i].isPositioning()) {
+					isReleasing = true;
+				}
+			}
 			if (self.muuri._settings.dragEnabled) {
-				if((e.target && e.target.tagName && (self.noDragTags.indexOf(e.target.tagName) > -1 || self.lookupDragTarget(e.target)) || self.detectWithinCodemirror(e) || !self.detectGridWithinGrid(e.target))) {
+				if(isReleasing || (e.target && e.target.tagName && (self.noDragTags.indexOf(e.target.tagName) > -1 || self.lookupDragTarget(e.target)) || self.detectWithinCodemirror(e) || !self.detectGridWithinGrid(e.target))) {
 					return false;
 				} else {
 					return Muuri.ItemDrag.defaultStartPredicate(item,e);
@@ -459,6 +487,7 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 			}
 		},
 		dragSort: function () {
+			self.findConnectedGrids();
 			return self.connectedGrids;
 		},
 		dragSortInterval: self.dragSortInterval,
@@ -470,7 +499,7 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 		itemDraggingClass: "tc-muuri-dragging",
 		itemReleasingClass: "tc-muuri-releasing",
 		itemPositioningClass: "tc-muuri-positioning"
-    };
+	};
 };
 
 MuuriStoryView.prototype.detectWithinCodemirror = function(event) {
@@ -506,7 +535,7 @@ MuuriStoryView.prototype.detectGridWithinGrid = function(element) {
 	var elementChildNodes = element.childNodes;
 	var isCurrentGrid = false,
 		foundGrid = false;
-
+	
 	if(elementChildNodes.length === 0) {
 		return true;
 	}
@@ -588,7 +617,7 @@ MuuriStoryView.prototype.removeResizeListener = function(element,fn) {
 
 MuuriStoryView.prototype.refreshMuuriGrid = function(item) {
 	var self = this;
-    this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
+        this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
 	this.muuri.refreshItems();
 	this.muuri._refreshDimensions();
 	this.muuri.layout(); //no .layout(true), make tiddlers move, not jump instantly
@@ -616,11 +645,21 @@ MuuriStoryView.prototype.insert = function(widget) {
 		this.muuri._items.splice(index,1);
 		this.muuri.refreshItems();
 	}
-	this.muuri.add(targetElement,{index: targetIndex, layout: "instant"});
-	this.addResizeListener(targetElement,function() {
-		self.refreshMuuriGrid();
-	});
-	this.refreshItemTitlesArray();
+	if(!this.isDragging) {
+		setTimeout(function(){
+			self.muuri.add(targetElement,{index: targetIndex, instant: true});
+			self.addResizeListener(targetElement,function() {
+				self.refreshMuuriGrid();
+			});
+			self.refreshItemTitlesArray();
+		},0);
+	} else {
+		this.muuri.add(targetElement,{index: targetIndex, instant: true});
+		this.addResizeListener(targetElement,function() {
+			self.refreshMuuriGrid();
+		});
+		this.refreshItemTitlesArray();
+	}
 };
 
 MuuriStoryView.prototype.remove = function(widget) {
@@ -634,14 +673,25 @@ MuuriStoryView.prototype.remove = function(widget) {
 		return;
 	}
 	removeElement();
-    this.removeResizeListener(targetElement,function() {
+        this.removeResizeListener(targetElement,function() {
 		self.refreshMuuriGrid();
 	});
-	this.refreshItemTitlesArray();
-    this.muuri.refreshItems();
-	this.muuri.remove([targetElement],{removeElements: true, layout: false});
-    this.muuri._refreshDimensions();
-    this.muuri.layout();
+	removeElement();
+	this.muuri.refreshItems();
+	if(!this.isDragging) {
+                this.muuri.refreshItems();
+		setTimeout(function(){
+			self.muuri.remove([targetElement],{removeElements: true});
+			self.muuri.layout();
+			self.refreshItemTitlesArray();
+		},0);
+	} else {
+                this.refreshItemTitlesArray();
+                this.muuri.refreshItems();
+		this.muuri.remove([targetElement],{removeElements: true});
+		this.muuri.layout();
+		
+	}
 };
 
 MuuriStoryView.prototype.navigateTo = function(historyInfo) {
@@ -666,7 +716,7 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 		this.muuri._settings.showDuration = this.muuri._settings.layoutDuration = this.animationDuration = $tw.utils.getAnimationDuration();
 	}
 	if(changedTiddlers[COLUMN_CONFIG]) {
-        this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
+                this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
 		this.muuri.refreshItems();
 		this.muuri.layout();
 		this.muuri.synchronize();
@@ -715,7 +765,7 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 		this.muuri._settings.dragSortPredicate.action = this.dragSortAction = this.listWidget.getAttribute("dragSortAction",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTACTION_CONFIG) : "move");
 	}
 	if(changedTiddlers[DRAGSORTTHRESHOLD_CONFIG] || changedAttributes.dragSortThreshold) {
-		this.muuri._settings.dragSortPredicate.threshold = this.dragSortThreshold = parseInt(this.listWidget.getAttribute("dragSortThreshold",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTTHRESHOLD_CONFIG) : "40"));
+		this.muuri._settings.dragSortPredicate.threshold = this.dragSortThreshold = parseInt(this.listWidget.getAttribute("dragSortThreshold",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTTHRESHOLD_CONFIG) : "40"));		
 	}
 	if(changedTiddlers[this.itemTemplate] || changedTiddlers[this.itemEditTemplate]) {
 		setTimeout(function(){

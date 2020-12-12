@@ -18,7 +18,7 @@ position: absolute;
 
 <$reveal state="$:/view" type="match" text="muuri">
 
-<$vars count={{{ [{$:/state/config/muuri/storyview/columns}] ~[[1]] }}} margin={{$:/config/muuri/tiddler/margin}} marginSuffix={{{ [{$:/state/config/muuri/storyview/align-right}match[yes]addprefix[right]removesuffix[yes]] ~[[left]] }}} sidebarBreakPoint={{$:/themes/tiddlywiki/vanilla/metrics/sidebarbreakpoint}} marginBottom={{$:/config/muuri/tiddler/margin-bottom}} storyHighZIndex={{{ [list[$:/StoryList]count[]add[201]] }}}>
+<$vars count={{{ [{$:/state/config/muuri/storyview/columns}] ~[[1]] }}} margin={{$:/config/muuri/tiddler/margin}} marginSuffix={{{ [{$:/state/config/muuri/storyview/align-right}match[yes]addprefix[right]removesuffix[yes]] ~[[$:/state/config/muuri/storyview/align-right]is[missing]then[right]] ~[[left]] }}} sidebarBreakPoint={{$:/themes/tiddlywiki/vanilla/metrics/sidebarbreakpoint}} marginBottom={{$:/config/muuri/tiddler/margin-bottom}} storyHighZIndex={{{ [list[$:/StoryList]count[]add[201]] }}}>
 
 @media(min-width:<<sidebarBreakPoint>>) {
 
@@ -276,6 +276,8 @@ z-index: -1 !important;
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-titlebar, .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-subtitle, .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-tags-wrapper {
 display: none;
 }
+
+</$reveal>
 
 </$reveal>
 
