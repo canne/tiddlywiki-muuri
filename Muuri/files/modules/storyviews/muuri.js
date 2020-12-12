@@ -367,7 +367,7 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 	this.horizontal = false;
 	this.itemTemplate = this.listWidget.getAttribute("template");
 	this.itemEditTemplate = this.listWidget.getAttribute("editTemplate");
-        this.columns = parseInt( this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG) );
+    this.columns = parseInt( this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG) );
 }
 
 MuuriStoryView.prototype.createMuuriGrid = function() {
@@ -535,7 +535,7 @@ MuuriStoryView.prototype.detectGridWithinGrid = function(element) {
 	var elementChildNodes = element.childNodes;
 	var isCurrentGrid = false,
 		foundGrid = false;
-	
+
 	if(elementChildNodes.length === 0) {
 		return true;
 	}
@@ -676,21 +676,18 @@ MuuriStoryView.prototype.remove = function(widget) {
         this.removeResizeListener(targetElement,function() {
 		self.refreshMuuriGrid();
 	});
-	removeElement();
-	this.muuri.refreshItems();
 	if(!this.isDragging) {
-                this.muuri.refreshItems();
+        this.muuri.refreshItems();
+        self.refreshItemTitlesArray();
 		setTimeout(function(){
 			self.muuri.remove([targetElement],{removeElements: true});
 			self.muuri.layout();
-			self.refreshItemTitlesArray();
 		},0);
 	} else {
-                this.refreshItemTitlesArray();
-                this.muuri.refreshItems();
+        this.refreshItemTitlesArray();
+        this.muuri.refreshItems();
 		this.muuri.remove([targetElement],{removeElements: true});
 		this.muuri.layout();
-		
 	}
 };
 
@@ -765,7 +762,7 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 		this.muuri._settings.dragSortPredicate.action = this.dragSortAction = this.listWidget.getAttribute("dragSortAction",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTACTION_CONFIG) : "move");
 	}
 	if(changedTiddlers[DRAGSORTTHRESHOLD_CONFIG] || changedAttributes.dragSortThreshold) {
-		this.muuri._settings.dragSortPredicate.threshold = this.dragSortThreshold = parseInt(this.listWidget.getAttribute("dragSortThreshold",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTTHRESHOLD_CONFIG) : "40"));		
+		this.muuri._settings.dragSortPredicate.threshold = this.dragSortThreshold = parseInt(this.listWidget.getAttribute("dragSortThreshold",this.storyListTitle === "$:/StoryList" ? this.listWidget.wiki.getTiddlerText(DRAGSORTTHRESHOLD_CONFIG) : "40"));
 	}
 	if(changedTiddlers[this.itemTemplate] || changedTiddlers[this.itemEditTemplate]) {
 		setTimeout(function(){
