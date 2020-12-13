@@ -418,7 +418,7 @@ MuuriStoryView.prototype.muuriLayoutOptionDefault = function() {
 
 MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 	var self = this;
-	return function (grid, layoutId, items, width, height, callback) {
+	return function(grid,layoutId,items,width,height,callback) {
 			var layout = {
 			id: layoutId,
 			items: items,
@@ -433,9 +433,9 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 		h = 0,
 		iteminarow = 0,
 		rowmaxheight = 0;
-		for ( var i = 0; i < items.length; i++ ) {
+		for(var i=0; i<items.length;i++) {
 			iteminarow++;
-			if ( iteminarow > self.columns ) {
+			if(iteminarow > self.columns) {
 				iteminarow = 1;
 				y += rowmaxheight;
 				rowmaxheight = 0;
@@ -447,8 +447,9 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 			item = items[i];
 			m = item.getMargin();
 			h = item.getHeight() + m.top + m.bottom;
-			if ( rowmaxheight < h )
+			if(rowmaxheight < h) {
 				rowmaxheight = h;
+			}
 			w = item.getWidth() + m.left + m.right;
 			layout.slots.push(x, y);
 		};
