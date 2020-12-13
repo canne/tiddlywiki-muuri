@@ -324,12 +324,15 @@ MuuriStoryView.prototype.getMuuriAlignmentAttributes = function() {
 	this.alignBottom = false;
 	var prevAlignRows = this.alignRows;
 	this.alignRows = false;
-	if ( this.alignSelect === "1" )
+	if(this.alignSelect === "1") {
 		this.alignBottom = true;
-	else if ( this.alignSelect === "2" )
+	}
+	else if(this.alignSelect === "2") {
 		this.alignRows = true;
-	if ( this.alignRows !== prevAlignRows )
+	}
+	if(this.alignRows !== prevAlignRows) {
 		this.alignmentLayoutMethodChange = true;
+	}
 };
 
 MuuriStoryView.prototype.getMuuriAttributes = function() {
@@ -463,7 +466,7 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 		dragEnabled: self.dragEnabled,
 		dragHandle: self.dragHandle,
 		columns: self.columns,
-		layout: ( self.alignRows ? this.muuriLayoutOptionRows() : this.muuriLayoutOptionRows() ),
+		layout: (self.alignRows ? this.muuriLayoutOptionRows() : this.muuriLayoutOptionDefault()),
 		dragSortPredicate: {
 			action: self.dragSortAction,
 			threshold: self.dragSortThreshold
@@ -618,7 +621,7 @@ MuuriStoryView.prototype.removeResizeListener = function(element,fn) {
 
 MuuriStoryView.prototype.refreshMuuriGrid = function(item) {
 	var self = this;
-		this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
+	this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
 	this.muuri.refreshItems();
 	this.muuri._refreshDimensions();
 	this.muuri.layout(); //no .layout(true), make tiddlers move, not jump instantly
@@ -641,7 +644,7 @@ MuuriStoryView.prototype.insert = function(widget) {
 	var targetIndex = this.listWidget.findListItem(0,itemTitle);
 	if(this.itemTitlesArray.indexOf(itemTitle) !== -1) {
 		var index = this.itemTitlesArray.indexOf(itemTitle),
-				items = this.muuri.getItems();
+			items = this.muuri.getItems();
 		//this.muuri.remove([items[index]],{removeElements: true, layout: false})
 		this.muuri._items.splice(index,1);
 		this.muuri.refreshItems();
@@ -738,18 +741,18 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 	}
 	if(changedTiddlers[ALIGNBOTTOM_CONFIG] || changedAttributes.alignBottom) {
 		this.getMuuriAlignmentAttributes();
-		if ( this.alignmentLayoutMethodChange ) {
-			if ( this.alignRows ) {
+		if(this.alignmentLayoutMethodChange) {
+			if(this.alignRows) {
 				this.muuri._settings.layout = this.muuriLayoutOptionRows();
 			}
 			else {
 				this.muuri._settings.layout = this.muuriLayoutOptionDefault();
 				this.muuri._settings.layout.alignBottom = this.alignBottom;
 			}
-		 }
-		 else {
-			 this.muuri._settings.layout.alignBottom = this.alignBottom;
-		 }
+		}
+		else {
+			this.muuri._settings.layout.alignBottom = this.alignBottom;
+		}
 		this.muuri.refreshItems();
 		this.muuri._refreshDimensions();
 		this.muuri.layout();
