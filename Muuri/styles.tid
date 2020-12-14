@@ -3,9 +3,15 @@ tags: $:/tags/Stylesheet
 
 \define z-indices()
 \rules only
-.tc-story-river.tc-muuri-river > [data-tiddler-title="$(cssEscapedTiddler)$"].tc-tiddler-frame:not(.tc-muuri-dragging):not(.tc-muuri-positioning) {
+.tc-story-river.tc-muuri-river > [data-tiddler-title="$(cssEscapedTitle)$"].tc-tiddler-frame:not(.tc-muuri-dragging):not(.tc-muuri-positioning) {
 	z-index: $(zIndex)$;
 }
+\end
+\define set-muuri-tiddler-width()
+.tc-story-river.tc-muuri-river > [data-tiddler-title="$(cssEscapedTitle)$"].tc-tiddler-frame {
+	width: calc((100% / <<columns>>) - <<margin>> - (<<margin>> / <<columns>>));
+}
+
 \end
 
 .tc-muuri-dragging {
@@ -47,6 +53,20 @@ position: absolute;
 	margin-<<marginSuffix>>: <<margin>>;
 	margin-bottom: <<marginBottom>>;
 }
+
+<$list filter="[list[$:/StoryList]has[muuri-tiddler-width]]">
+
+	<$set name="columns" value={{{ [<currentTiddler>get[muuri-tiddler-width]] }}}>
+	
+		<$set name="cssEscapedTitle" value={{{ [<currentTiddler>escapecss[]] }}}>
+		
+			<<set-muuri-tiddler-width>>
+		
+		</$set>
+
+	</$set>
+
+</$list>
 
 .tc-story-river.tc-muuri-river {
 	margin-top: {{$:/config/muuri/storyview/story-river/margin-top}};
@@ -273,7 +293,7 @@ position: absolute;
 
 		<$set name="zIndex" value={{{[list[$:/state/muuri/tiddlers/z-indices]allafter<zIndexTiddler>] +[count[]] }}}>
 
-			<$set name="cssEscapedTiddler" value={{{ [<zIndexTiddler>escapecss[]] }}}>
+			<$set name="cssEscapedTitle" value={{{ [<zIndexTiddler>escapecss[]] }}}>
 
 				<<z-indices>>
 
