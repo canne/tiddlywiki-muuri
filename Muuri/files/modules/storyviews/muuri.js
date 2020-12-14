@@ -370,12 +370,11 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 	this.horizontal = false;
 	this.itemTemplate = this.listWidget.getAttribute("template");
 	this.itemEditTemplate = this.listWidget.getAttribute("editTemplate");
-	this.columns = parseInt( this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG) );
+	this.columns = parseInt(this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)));
 }
 
 MuuriStoryView.prototype.createMuuriGrid = function() {
 	var self = this;
-
 	this.muuriOptions = this.collectMuuriOptions();
 	var domNode = this.listWidget.parentDomNode;
 	domNode.setAttribute("data-grid","muuri");
@@ -418,46 +417,122 @@ MuuriStoryView.prototype.muuriLayoutOptionDefault = function() {
 
 MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 	var self = this;
-	return function(grid,layoutId,items,width,height,callback) {
+	if(this.alignRight) {
+		return function (grid,layoutId,items,width,height,callback) {
 			var layout = {
-			id: layoutId,
-			items: items,
-			slots: [],
-			styles: {},
-		};
-		var item,
-		m,
-		x = 0,
-		y = 0,
-		w = 0,
-		h = 0,
-		iteminarow = 0,
-		rowmaxheight = 0;
-		for(var i=0; i<items.length;i++) {
-			iteminarow++;
-			if(iteminarow > self.columns) {
-				iteminarow = 1;
-				y += rowmaxheight;
-				rowmaxheight = 0;
-				x = 0;
-			}
-			else {
+				id: layoutId,
+				items: items,
+				slots: [],
+				styles: {},
+			};
+			var item,
+				m,
+				x = 0,
+				y = 0,
+				w = 0,
+				h = 0;
+			
+			var iteminarow = 0;
+			var rowmaxheight = 0;
+			var maxrowwidth = 0;
+
+			// Let's not trust the available client area, calculate the max.width
+			for (var i = 0; i < items.length; i++) {
+				iteminarow++;
+				if ( iteminarow > self.columns) {
+					iteminarow = 1;
+				if ( x > maxrowwidth )
+					maxrowwidth = x;
+					x = 0;
+			  	}
+				item = items[i];
+				m = item.getMargin();
+				h = item.getHeight() + m.top + m.bottom;
+				w = item.getWidth() + m.left + m.right;
 				x += w;
 			}
-			item = items[i];
-			m = item.getMargin();
-			h = item.getHeight() + m.top + m.bottom;
-			if(rowmaxheight < h) {
-				rowmaxheight = h;
+			
+			x = maxrowwidth;
+			y = 0;
+			w = 0;
+			h = 0;    
+			iteminarow = 0;
+			rowmaxheight = 0;
+
+			for (var i = 0; i < items.length; i++) {
+				iteminarow++;
+				if ( iteminarow > self.columns) {
+					iteminarow = 1;
+					y += rowmaxheight;
+					rowmaxheight = 0;
+					x = maxrowwidth;
+			  	}
+				item = items[i];
+				m = item.getMargin();
+				h = item.getHeight() + m.top + m.bottom;
+				if ( rowmaxheight < h ) {
+					rowmaxheight = h;
+				}
+				w = item.getWidth() + m.left + m.right;
+				x -= w;
+				layout.slots.push(x, y);
 			}
-			w = item.getWidth() + m.left + m.right;
-			layout.slots.push(x, y);
+			
+			w -= x;
+			h += y;
+
+			// Set the CSS styles that should be applied
+			// to the grid element.
+			layout.styles.width = w + 'px';
+			layout.styles.height = h + 'px';
+
+			// When the layout is fully computed
+			// let's call the callback function and
+			// provide the layout object as it's argument.
+			callback(layout);
 		};
-		// When the layout is fully computed
-		// let's call the callback function and
-		// provide the layout object as it's argument.
-		callback(layout);
-	};
+	} else {
+		return function(grid,layoutId,items,width,height,callback) {
+				var layout = {
+				id: layoutId,
+				items: items,
+				slots: [],
+				styles: {},
+			};
+			var item,
+			m,
+			x = 0,
+			y = 0,
+			w = 0,
+			h = 0,
+			iteminarow = 0,
+			rowmaxheight = 0;
+			for(var i=0; i<items.length;i++) {
+				iteminarow++;
+				if(iteminarow > self.columns) {
+					iteminarow = 1;
+					y += rowmaxheight;
+					rowmaxheight = 0;
+					x = 0;
+				}
+				else {
+					x += w;
+				}
+				item = items[i];
+				m = item.getMargin();
+				h = item.getHeight() + m.top + m.bottom;
+				if(rowmaxheight < h) {
+					rowmaxheight = h;
+				}
+				w = item.getWidth() + m.left + m.right;
+				layout.slots.push(x, y);
+			};
+			// When the layout is fully computed
+			// let's call the callback function and
+			// provide the layout object as it's argument.
+			callback(layout);
+		};
+	}
 };
 
 MuuriStoryView.prototype.collectMuuriOptions = function() {
@@ -467,7 +542,7 @@ MuuriStoryView.prototype.collectMuuriOptions = function() {
 		dragEnabled: self.dragEnabled,
 		dragHandle: self.dragHandle,
 		columns: self.columns,
-		layout: (self.alignRows ? this.muuriLayoutOptionRows() : this.muuriLayoutOptionDefault()),
+		layout: (self.alignRows ? self.muuriLayoutOptionRows() : self.muuriLayoutOptionDefault()),
 		dragSortPredicate: {
 			action: self.dragSortAction,
 			threshold: self.dragSortThreshold
@@ -622,7 +697,7 @@ MuuriStoryView.prototype.removeResizeListener = function(element,fn) {
 
 MuuriStoryView.prototype.refreshMuuriGrid = function(item) {
 	var self = this;
-	this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
+	this.columns = parseInt(this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)));
 	this.muuri.refreshItems();
 	this.muuri._refreshDimensions();
 	this.muuri.layout(); //no .layout(true), make tiddlers move, not jump instantly
@@ -718,7 +793,7 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 		this.muuri._settings.showDuration = this.muuri._settings.layoutDuration = this.animationDuration = $tw.utils.getAnimationDuration();
 	}
 	if(changedTiddlers[COLUMN_CONFIG]) {
-				this.columns = parseInt( this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)) );
+		this.columns = parseInt(this.listWidget.getAttribute("columns",this.listWidget.wiki.getTiddlerText(COLUMN_CONFIG)));
 		this.muuri.refreshItems();
 		this.muuri.layout();
 		this.muuri.synchronize();
@@ -736,6 +811,9 @@ MuuriStoryView.prototype.muuriRefresh = function(changedTiddlers) {
 	}
 	if(changedTiddlers[ALIGNRIGHT_CONFIG] || changedAttributes.alignRight) {
 		this.muuri._settings.layout.alignRight = this.alignRight = this.listWidget.getAttribute("alignRight",this.listWidget.wiki.getTiddlerText(ALIGNRIGHT_CONFIG)) !== "no";
+		if(this.alignRows) {
+			this.muuri._settings.layout = this.muuriLayoutOptionRows();
+		}
 		this.muuri.refreshItems();
 		this.muuri._refreshDimensions();
 		this.muuri.layout();

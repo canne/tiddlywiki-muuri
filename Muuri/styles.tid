@@ -22,18 +22,34 @@ position: absolute;
 
 @media(min-width:<<sidebarBreakPoint>>) {
 
+	<$reveal state="$:/themes/tiddlywiki/vanilla/options/sidebarlayout" type="match" text="fluid-fixed">
+
+		.tc-story-river.tc-muuri-river {
+			min-width: calc(100% - {{$:/themes/tiddlywiki/vanilla/metrics/sidebarwidth}});
+		}
+	
+	</$reveal>
+
+	<$reveal state="$:/themes/tiddlywiki/vanilla/options/sidebarlayout" type="match" text="fixed-fluid">
+
+		.tc-story-river.tc-muuri-river {
+			min-width: {{$:/themes/tiddlywiki/vanilla/metrics/storywidth}};
+		}
+
+	</$reveal>
+
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame {
 	position: absolute;
 }
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame {
-width: calc((100% / <<count>>) - <<margin>> - (<<margin>> / <<count>>));
-margin-<<marginSuffix>>: <<margin>>;
-margin-bottom: <<marginBottom>>;
+	width: calc((100% / <<count>>) - <<margin>> - (<<margin>> / <<count>>));
+	margin-<<marginSuffix>>: <<margin>>;
+	margin-bottom: <<marginBottom>>;
 }
 
 .tc-story-river.tc-muuri-river {
-margin-top: {{$:/config/muuri/storyview/story-river/margin-top}};
+	margin-top: {{$:/config/muuri/storyview/story-river/margin-top}};
 }
 
 	.tc-sidebar-scrollable {
@@ -43,21 +59,21 @@ margin-top: {{$:/config/muuri/storyview/story-river/margin-top}};
 <$reveal state="$:/state/config/muuri/storyview/columns" type="gt" text="2">
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-tiddler-info {
-padding: 0;
+	padding: 0;
 }
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame button.tc-fold-banner, .tc-story-river.tc-muuri-river > .tc-tiddler-frame button.tc-unfold-banner {
-margin-left: -29px;
+	margin-left: -29px;
 }
 
 <$reveal state="$:/state/config/muuri/storyview/columns" type="lt" text="5">
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame {
-padding: 2em;
+	padding: 2em;
 }
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-tiddler-info {
-margin: 0 -2em 0 -2em;
+	margin: 0 -2em 0 -2em;
 }
 
 </$reveal>
@@ -65,19 +81,19 @@ margin: 0 -2em 0 -2em;
 <$reveal state="$:/state/config/muuri/storyview/columns" type="gteq" text="5">
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame {
-padding: 1em;
+	padding: 1em;
 }
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-tiddler-info {
-margin: 0 -1em 0 -1em;
+	margin: 0 -1em 0 -1em;
 }
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame button.tc-fold-banner, .tc-story-river.tc-muuri-river > .tc-tiddler-frame button.tc-unfold-banner {
-margin-left: -15px;
+	margin-left: -15px;
 }
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame button.tc-unfold-banner {
-margin-top: -6px;
+	margin-top: -6px;
 }
 
 </$reveal>
@@ -87,7 +103,7 @@ margin-top: -6px;
 <$reveal state="$:/themes/tiddlywiki/vanilla/options/sidebarlayout" type="match" text="fixed-fluid">
 
 .tc-sidebar-scrollable {
-left: calc({{$:/themes/tiddlywiki/vanilla/metrics/storyright}} + 42px);
+	left: calc({{$:/themes/tiddlywiki/vanilla/metrics/storyright}} + 42px);
 }
 
 	<$reveal state="$:/state/sidebar" type="nomatch" text="no">
@@ -113,31 +129,31 @@ left: calc({{$:/themes/tiddlywiki/vanilla/metrics/storyright}} + 42px);
 }
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame {
-width: calc((100% / 2) - <<margin>> - (<<margin>> / 2));
-margin-<<marginSuffix>>: <<margin>>;
-margin-bottom: <<marginBottom>>;
+	width: calc((100% / 2) - <<margin>> - (<<margin>> / 2));
+	margin-<<marginSuffix>>: <<margin>>;
+	margin-bottom: <<marginBottom>>;
 }
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-titlebar {
-font-size: 1.5em;
+	font-size: 1.5em;
 }
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-titlebar .tc-tiddler-controls .tc-drop-down {
-font-size: 1em;
+	font-size: 1em;
 }
 
 .tc-story-river.tc-muuri-river {
-margin-top: {{$:/config/muuri/storyview/story-river/margin-top}};
+	margin-top: {{$:/config/muuri/storyview/story-river/margin-top}};
 }
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-tiddler-info {
-padding: 0;
+	padding: 0;
 }
 
 <$reveal state="$:/state/sidebar" type="match" text="no">
 
 .tc-sidebar-scrollable {
-display: none;
+	display: none;
 }
 
 </$reveal>
@@ -227,11 +243,11 @@ display: none;
 <$list filter="[all[tiddlers]prefix[$:/state/popup/more-]limit[1]]">
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-tag-list-item {
-z-index: -1;
+	z-index: -1;
 }
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame [data-grid="muuri"] {
-z-index: -1 !important;
+	z-index: -1 !important;
 }
 
 </$list>
@@ -274,7 +290,7 @@ z-index: -1 !important;
 <$reveal state="$:/state/config/muuri/storyview/hide-titles-tags" type="match" text="yes">
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-titlebar, .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-subtitle, .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-tags-wrapper {
-display: none;
+	display: none;
 }
 
 </$reveal>
