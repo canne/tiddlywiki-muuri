@@ -23,14 +23,14 @@ tags: $:/tags/ControlPanel/Appearance
 
 //<small>Align left/right:</small>//
 
-<$select tiddler="$:/state/config/muuri/storyview/align-right" default="yes">
+<$select tiddler="$:/config/muuri/storyview/align-right" default="yes">
 <option value="no">left</option>
 <option value="yes">right</option>
 </$select>
 
 //<small>Align top/bottom/rows:</small>//
 
-<$select tiddler="$:/state/config/muuri/storyview/align-bottom" default="0">
+<$select tiddler="$:/config/muuri/storyview/align-bottom" default="0">
 <option value="0">top</option>
 <option value="1">bottom</option>
 <option value="2">rows</option>
@@ -38,14 +38,14 @@ tags: $:/tags/ControlPanel/Appearance
 
 //<small>Gapless story view:</small>//
 
-<$select tiddler="$:/state/config/muuri/storyview/fill-gaps" default="no">
+<$select tiddler="$:/config/muuri/storyview/fill-gaps" default="no">
 <option value="no">no</option>
 <option value="yes">yes</option>
 </$select>
 
 //<small>Hide titles and tags:</small>//
 
-<$select tiddler="$:/state/config/muuri/storyview/hide-titles-tags" default="no">
+<$select tiddler="$:/config/muuri/storyview/hide-titles-tags" default="no">
 <option value="no">no</option>
 <option value="yes">yes</option>
 </$select>

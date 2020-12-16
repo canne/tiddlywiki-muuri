@@ -14,13 +14,13 @@ Views the story as a muuri grid
 
 var easing = "cubic-bezier(0.215, 0.61, 0.355, 1)";
 
-var COLUMN_CONFIG = "$:/state/config/muuri/storyview/columns",
+var COLUMN_CONFIG = "$:/config/muuri/storyview/columns",
 	SEAMLESS_CONFIG = "$:/config/muuri/storyview/fill-gaps",
-	ALIGNRIGHT_CONFIG = "$:/state/config/muuri/storyview/align-right",
-	ALIGNBOTTOM_CONFIG = "$:/state/config/muuri/storyview/align-bottom",
+	ALIGNRIGHT_CONFIG = "$:/config/muuri/storyview/align-right",
+	ALIGNBOTTOM_CONFIG = "$:/config/muuri/storyview/align-bottom",
 	DRAGSORTACTION_CONFIG = "$:/config/muuri/storyview/dragsort-action",
 	DRAGSORTTHRESHOLD_CONFIG ="$:/config/muuri/storyview/dragsort-threshold",
-	SELECTTEXT_CONFIG = "$:/state/config/muuri/storyview/select-text";
+	SELECTTEXT_CONFIG = "$:/config/muuri/storyview/select-text";
 
 if(typeof window !== "undefined") {
 	var testElement = document.body;
@@ -361,8 +361,7 @@ MuuriStoryView.prototype.getMuuriAttributes = function() {
 	}
 	this.dragHandle = dragHandle;
 //	this.fillGaps = this.listWidget.getAttribute("fillGaps",this.listWidget.wiki.getTiddlerText(SEAMLESS_CONFIG)) === "yes";
-	this.alignRight = this.listWidget.getAttribute("alignRight",this.listWidget.wiki.getTiddlerText(ALIGNRIGHT_CONFIG)) !== "no";
-	this.alignBottom = this.listWidget.getAttribute("alignBottom",this.listWidget.wiki.getTiddlerText(ALIGNBOTTOM_CONFIG)) === "yes";
+    this.getMuuriAlignmentAttributes();
 	this.dragEnabled = this.listWidget.getAttribute("selectText",this.listWidget.wiki.getTiddlerText(SELECTTEXT_CONFIG)) !== "yes";
 	this.storyListTitle = this.listWidget.getAttribute("storyList","$:/StoryList");
 	this.storyListField = this.listWidget.getAttribute("storyListField","list");
@@ -417,7 +416,7 @@ MuuriStoryView.prototype.muuriLayoutOptionDefault = function() {
 
 MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 	var self = this;
-	if(this.alignRight) {
+	if( self.alignRight ) {
 		return function (grid,layoutId,items,width,height,callback) {
 			var layout = {
 				id: layoutId,
@@ -431,7 +430,7 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 				y = 0,
 				w = 0,
 				h = 0;
-			
+
 			var iteminarow = 0;
 			var rowmaxheight = 0;
 			var maxrowwidth = 0;
@@ -451,11 +450,13 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 				w = item.getWidth() + m.left + m.right;
 				x += w;
 			}
-			
-			x = maxrowwidth;
+            if ( x > maxrowwidth )
+              maxrowwidth = x;
+            else
+              x = maxrowwidth;
 			y = 0;
 			w = 0;
-			h = 0;    
+			h = 0;
 			iteminarow = 0;
 			rowmaxheight = 0;
 
@@ -477,7 +478,7 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 				x -= w;
 				layout.slots.push(x, y);
 			}
-			
+
 			w -= x;
 			h += y;
 
@@ -527,7 +528,13 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 				w = item.getWidth() + m.left + m.right;
 				layout.slots.push(x, y);
 			};
-			// When the layout is fully computed
+            w -= x;
+            h += y;
+
+            // Set the CSS styles that should be applied
+            // to the grid element.
+            layout.styles.width = w + 'px';
+            layout.styles.height = h + 'px';			// When the layout is fully computed
 			// let's call the callback function and
 			// provide the layout object as it's argument.
 			callback(layout);

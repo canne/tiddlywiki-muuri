@@ -10,7 +10,7 @@ dragging $onoff$ - [$(draggingShortcut)$]
 
 \whitespace trim
 <$reveal state="$:/view" type="match" text="muuri">
-<$vars draggingShortcut={{$:/config/shortcuts/select-text}} state="$:/state/config/muuri/storyview/select-text">
+<$vars draggingShortcut={{$:/config/shortcuts/select-text}} state="$:/config/muuri/storyview/select-text">
 <$reveal state=<<state>> type="nomatch" text="yes">
 <$button class=<<get-button-class "tc-selected">> tooltip=<<get-dragging-tooltip "off">>>
 <$action-setfield $tiddler=<<state>> text="yes"/>

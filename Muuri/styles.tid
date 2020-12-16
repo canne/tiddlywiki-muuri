@@ -18,7 +18,7 @@ position: absolute;
 
 <$reveal state="$:/view" type="match" text="muuri">
 
-<$vars count={{{ [{$:/state/config/muuri/storyview/columns}] ~[[1]] }}} margin={{$:/config/muuri/tiddler/margin}} marginSuffix={{{ [{$:/state/config/muuri/storyview/align-right}match[yes]addprefix[right]removesuffix[yes]] ~[[$:/state/config/muuri/storyview/align-right]is[missing]then[right]] ~[[left]] }}} sidebarBreakPoint={{$:/themes/tiddlywiki/vanilla/metrics/sidebarbreakpoint}} marginBottom={{$:/config/muuri/tiddler/margin-bottom}} storyHighZIndex={{{ [list[$:/StoryList]count[]add[201]] }}}>
+<$vars count={{{ [{$:/config/muuri/storyview/columns}] ~[[1]] }}} margin={{$:/config/muuri/tiddler/margin}} marginSuffix={{{ [{$:/config/muuri/storyview/align-right}match[yes]addprefix[right]removesuffix[yes]] ~[[$:/config/muuri/storyview/align-right]is[missing]then[right]] ~[[left]] }}} sidebarBreakPoint={{$:/themes/tiddlywiki/vanilla/metrics/sidebarbreakpoint}} marginBottom={{$:/config/muuri/tiddler/margin-bottom}} storyHighZIndex={{{ [list[$:/StoryList]count[]add[201]] }}}>
 
 @media(min-width:<<sidebarBreakPoint>>) {
 
@@ -56,7 +56,7 @@ position: absolute;
 		padding-left: calc(42px - <<margin>>);
 	}
 
-<$reveal state="$:/state/config/muuri/storyview/columns" type="gt" text="2">
+<$reveal state="$:/config/muuri/storyview/columns" type="gt" text="2">
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-tiddler-info {
 	padding: 0;
@@ -66,7 +66,7 @@ position: absolute;
 	margin-left: -29px;
 }
 
-<$reveal state="$:/state/config/muuri/storyview/columns" type="lt" text="5">
+<$reveal state="$:/config/muuri/storyview/columns" type="lt" text="5">
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame {
 	padding: 2em;
@@ -78,7 +78,7 @@ position: absolute;
 
 </$reveal>
 
-<$reveal state="$:/state/config/muuri/storyview/columns" type="gteq" text="5">
+<$reveal state="$:/config/muuri/storyview/columns" type="gteq" text="5">
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame {
 	padding: 1em;
@@ -164,7 +164,7 @@ position: absolute;
 
 }
 
-<$reveal state="$:/state/config/muuri/storyview/select-text" type="nomatch" text="yes">
+<$reveal state="$:/config/muuri/storyview/select-text" type="nomatch" text="yes">
 
 	.tc-story-river.tc-muuri-river > .tc-tiddler-frame img {
 		pointer-events: none;
@@ -172,7 +172,7 @@ position: absolute;
 
 </$reveal>
 
-<$reveal state="$:/state/config/muuri/storyview/fill-gaps" type="match" text="yes">
+<$reveal state="$:/config/muuri/storyview/fill-gaps" type="match" text="yes">
 
 	@media (min-width: <<sidebarBreakPoint>>) {
 		.tc-story-river.tc-muuri-river > .tc-tiddler-frame {
@@ -228,7 +228,7 @@ position: absolute;
 
 </$reveal>
 
-<$reveal state="$:/state/config/muuri/storyview/select-text" type="match" text="yes">
+<$reveal state="$:/config/muuri/storyview/select-text" type="match" text="yes">
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame {
 	touch-action: auto !important;
@@ -287,7 +287,7 @@ position: absolute;
 	z-index: <<storyHighZIndex>>;
 }
 
-<$reveal state="$:/state/config/muuri/storyview/hide-titles-tags" type="match" text="yes">
+<$reveal state="$:/config/muuri/storyview/hide-titles-tags" type="match" text="yes">
 
 .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-titlebar, .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-subtitle, .tc-story-river.tc-muuri-river > .tc-tiddler-frame .tc-tags-wrapper {
 	display: none;
