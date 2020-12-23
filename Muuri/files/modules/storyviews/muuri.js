@@ -6,6 +6,7 @@ module-type: storyview
 Views the story as a muuri grid
 
 \*/
+
 (function() {
 
 /*jslint node: true, browser: true */
@@ -722,16 +723,39 @@ MuuriStoryView.prototype.insert = function(widget) {
 	if(!(targetElement instanceof Element)) {
 		return;
 	}
+	console.log("MuuriStoryView.prototype.insert(): targetElement: " + targetElement);
 	this.refreshItemTitlesArray();
 	var itemTitle = widget.parseTreeNode.itemTitle;
+	console.log("MuuriStoryView.prototype.insert(): itemTitle: " + itemTitle);
 	var targetIndex = this.listWidget.findListItem(0,itemTitle);
+    console.log("MuuriStoryView.prototype.insert(): targetIndex: " + targetIndex);
 	if(this.itemTitlesArray.indexOf(itemTitle) !== -1) {
 		var index = this.itemTitlesArray.indexOf(itemTitle),
 			items = this.muuri.getItems();
+        console.log("MuuriStoryView.prototype.insert(): itemTitlesArray.indexOf(itemTitle) !== -1: index: " + index + " items.length: " + items.length);
 		//this.muuri.remove([items[index]],{removeElements: true, layout: false})
 		this.muuri._items.splice(index,1);
 		this.muuri.refreshItems();
 	}
+    // the attribute in 'original' 0.0.1 muuri-tiddler muuri-tiddler-width in CamelCase
+    var tiddler = widget.wiki.getTiddler(itemTitle);
+    var muuriTiddlerWidth = "";
+    if(tiddler)
+        muuriTiddlerWidth = tiddler.getFieldString("muuri-tiddler-width");
+    // var array = Array.prototype.slice.call(targetElement);
+    // console.log("MuuriStoryView.prototype.insert(): targetElement.array: " + array);
+    // if (targetElement.hasAttributes()) {
+    //     var attrs = targetElement.attributes;
+    //     var output = "";
+    //     for(var i = attrs.length - 1; i >= 0; i--) {
+    //         output += attrs[i].name + "->" + attrs[i].value;
+    //     }
+    //         console.log("MuuriStoryView.prototype.insert(): targetElement.attributes : " + output);
+    // } else {
+    //         console.log("MuuriStoryView.prototype.insert(): targetElement: no attributes.");
+    // }
+    // var muuriTiddlerWidth = widget.parseTreeNode.muuriTiddlerWidth;
+    console.log("MuuriStoryView.prototype.insert(): muuriTiddlerWidth: " + muuriTiddlerWidth);
 	if(!this.isDragging) {
 		setTimeout(function(){
 			self.muuri.add(targetElement,{index: targetIndex, instant: true});
