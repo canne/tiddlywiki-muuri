@@ -7,6 +7,12 @@ tags: $:/tags/Stylesheet
 	z-index: $(zIndex)$;
 }
 \end
+\define set-muuri-tiddler-width()
+.tc-story-river.tc-muuri-river > [data-tiddler-title="$(cssEscapedTitle)$"].tc-tiddler-frame {
+	width: calc((100% / <<columns>>) - <<margin>> - (<<margin>> / <<columns>>));
+}
+
+\end
 
 .tc-muuri-dragging {
 z-index: 1;
@@ -47,6 +53,20 @@ position: absolute;
 	margin-<<marginSuffix>>: <<margin>>;
 	margin-bottom: <<marginBottom>>;
 }
+
+<$list filter="[list[$:/StoryList]has[muuri-tiddler-width]]">
+
+	<$set name="columns" value={{{ [<currentTiddler>get[muuri-tiddler-width]] }}}>
+	
+		<$set name="cssEscapedTitle" value={{{ [<currentTiddler>escapecss[]] }}}>
+		
+			<<set-muuri-tiddler-width>>
+		
+		</$set>
+
+	</$set>
+
+</$list>
 
 .tc-story-river.tc-muuri-river {
 	margin-top: {{$:/config/muuri/storyview/story-river/margin-top}};
