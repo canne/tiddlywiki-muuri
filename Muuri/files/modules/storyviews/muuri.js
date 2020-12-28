@@ -446,6 +446,18 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 					x = 0;
 			  	}
 				item = items[i];
+                //
+                var muuriTiddlerWidth = "";
+                var elem = item.getElement();
+                if ( elem instanceof Element ) {
+                    if ( elem.hasAttributes() ) {
+                        if ( elem.hasAttribute("muuri-tiddler-width") ) {
+                            muuriTiddlerWidth = elem.getAttribute("muuri-tiddler-width");
+                        }
+                    }
+                }
+                console.log("MuuriStoryView.prototype.muuriLayoutOptionRows(): muuriTiddlerWidth: " + muuriTiddlerWidth);
+                //
 				m = item.getMargin();
 				h = item.getHeight() + m.top + m.bottom;
 				w = item.getWidth() + m.left + m.right;
@@ -742,19 +754,20 @@ MuuriStoryView.prototype.insert = function(widget) {
     var muuriTiddlerWidth = "";
     if(tiddler)
         muuriTiddlerWidth = tiddler.getFieldString("muuri-tiddler-width");
-    // var array = Array.prototype.slice.call(targetElement);
-    // console.log("MuuriStoryView.prototype.insert(): targetElement.array: " + array);
-    // if (targetElement.hasAttributes()) {
-    //     var attrs = targetElement.attributes;
-    //     var output = "";
-    //     for(var i = attrs.length - 1; i >= 0; i--) {
-    //         output += attrs[i].name + "->" + attrs[i].value;
-    //     }
-    //         console.log("MuuriStoryView.prototype.insert(): targetElement.attributes : " + output);
-    // } else {
-    //         console.log("MuuriStoryView.prototype.insert(): targetElement: no attributes.");
-    // }
-    // var muuriTiddlerWidth = widget.parseTreeNode.muuriTiddlerWidth;
+    targetElement.setAttribute("muuri-tiddler-width", muuriTiddlerWidth);
+    // let's check below all attributes
+    var array = Array.prototype.slice.call(targetElement);
+    console.log("MuuriStoryView.prototype.insert(): targetElement.array: " + array);
+    if (targetElement.hasAttributes()) {
+        var attrs = targetElement.attributes;
+        var output = "";
+        for (var i = attrs.length - 1; i >= 0; i--) {
+            output += attrs[i].name + "=" + attrs[i].value + " ";
+        }
+            console.log("MuuriStoryView.prototype.insert(): targetElement.attributes : " + output);
+    } else {
+            console.log("MuuriStoryView.prototype.insert(): targetElement: no attributes.");
+    }
     console.log("MuuriStoryView.prototype.insert(): muuriTiddlerWidth: " + muuriTiddlerWidth);
 	if(!this.isDragging) {
 		setTimeout(function(){
