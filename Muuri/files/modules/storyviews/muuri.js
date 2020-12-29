@@ -378,6 +378,38 @@ MuuriStoryView.prototype.createMuuriGrid = function() {
 	this.muuriOptions = this.collectMuuriOptions();
 	var domNode = this.listWidget.parentDomNode;
 	domNode.setAttribute("data-grid","muuri");
+
+    // Here we can scan all the list tiddlers and check for the width, then modify elements
+    // var list = this.listWidget.getTiddlerList();
+    // for ( var i = 0; i < list.length; i++ ) {
+    //     console.log("MuuriStoryView.prototype.createMuuriGrid(): itemTitle: " + list[ i ]);
+        // var listItemWidget = this.listWidget.[ i ];
+        // var targetElement = listItemWidget.findFirstDomNode();
+        // if( targetElement instanceof Element ) {
+        //     var itemTitle = listItemWidget.parseTreeNode.itemTitle;
+        // 	console.log("MuuriStoryView.prototype.createMuuriGrid(): itemTitle: " + itemTitle);
+            // the attribute in 'original' 0.0.1 muuri-tiddler muuri-tiddler-width
+        // var tiddler = this.listWidget.wiki.getTiddler(list[ i ]);
+        // var muuriTiddlerWidth = "";
+        // if ( tiddler )
+        //     muuriTiddlerWidth = tiddler.getFieldString("muuri-tiddler-width");
+            // targetElement.setAttribute("muuri-tiddler-width", muuriTiddlerWidth);
+        // }
+    // }
+    for ( var i = 0; i < this.listWidget.list.length; i++ ) {
+        var listItemWidget = this.listWidget.children[ i ];
+        var targetElement = listItemWidget.findFirstDomNode();
+        if( targetElement instanceof Element ) {
+            var itemTitle = listItemWidget.parseTreeNode.itemTitle;
+        	console.log("MuuriStoryView.prototype.createMuuriGrid(): itemTitle: " + itemTitle);
+            // the attribute in 'original' 0.0.1 muuri-tiddler muuri-tiddler-width
+            var tiddler = this.listWidget.wiki.getTiddler( itemTitle );
+            var muuriTiddlerWidth = "";
+            if ( tiddler )
+                muuriTiddlerWidth = tiddler.getFieldString("muuri-tiddler-width");
+            targetElement.setAttribute("muuri-tiddler-width", muuriTiddlerWidth);
+        }
+    }
 	this.muuri = new Muuri(domNode,self.muuriOptions);
 	$tw.wiki.addEventListener("change",function(changes) {
 		self.muuriRefresh(changes);
@@ -749,10 +781,10 @@ MuuriStoryView.prototype.insert = function(widget) {
 		this.muuri._items.splice(index,1);
 		this.muuri.refreshItems();
 	}
-    // the attribute in 'original' 0.0.1 muuri-tiddler muuri-tiddler-width in CamelCase
+    // the attribute in 'original' 0.0.1 muuri-tiddler muuri-tiddler-width
     var tiddler = widget.wiki.getTiddler(itemTitle);
     var muuriTiddlerWidth = "";
-    if(tiddler)
+    if ( tiddler )
         muuriTiddlerWidth = tiddler.getFieldString("muuri-tiddler-width");
     targetElement.setAttribute("muuri-tiddler-width", muuriTiddlerWidth);
     // let's check below all attributes
