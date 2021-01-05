@@ -429,6 +429,20 @@ MuuriStoryView.prototype.muuriLayoutOptionDefault = function() {
 	};
 };
 
+MuuriStoryView.prototype.muuriGetLogMuuriTiddlerWidthAsColSpan = function( elem ) {
+    var self = this;
+    var muuriTiddlerWidth = "0";
+    if ( elem instanceof Element ) {
+        if ( elem.hasAttributes() ) {
+            if ( elem.hasAttribute("muuri-tiddler-width") ) {
+                muuriTiddlerWidth = elem.getAttribute("muuri-tiddler-width");
+                console.log("muuriGetLogMuuriTiddlerWidthAsColSpan: muuriTiddlerWidth: " + muuriTiddlerWidth );
+            }
+        }
+    }
+    return parseInt( muuriTiddlerWidth ) || 0;
+};
+
 MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 	var self = this;
 	if( self.alignRight ) {
@@ -441,16 +455,15 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 			};
 			var item,
 				m,
-				x = 0,
+				x = width,
 				y = 0,
 				w = 0,
 				h = 0;
 
 			var iteminarow = 0;
 			var rowmaxheight = 0;
-			var maxrowwidth = 0;
 
-            console.log("muuriLayoutOptionRows(right): width: " + width );
+			// var maxrowwidth = 0;
 
 			// Let's not trust the available client area, calculate the max.width
 			// for (var i = 0; i < items.length; i++) {
@@ -491,34 +504,22 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
                     underrun = false;
 			  	}
 				item = items[i];
-				m = item.getMargin();
-				h = item.getHeight() + m.top + m.bottom;
-				if ( rowmaxheight < h ) {
-					rowmaxheight = h;
-				}
-				w = item.getWidth() + m.left + m.right;
-                console.log("muuriLayoutOptionRows(right): w: " + w );
+                m = item.getMargin();
+                w = item.getWidth() + m.left + m.right;
                 x -= w;
                 // w/ muuuri-tiddler-width the element may not fit the row
-                if ( x < 0 ) {
+                if ( (Math.trunc(x) < 0) && (self.columns > 1) ) {
                     underrun = true;
                     i -= 1;
-                    console.log("muuriLayoutOptionRows(right): underrun: " );
-                    // Wait - can be set to a fix column range
-                    var muuriTiddlerWidth = "0";
-                    var elem = item.getElement();
-                    if ( elem instanceof Element ) {
-                        if ( elem.hasAttributes() ) {
-                            if ( elem.hasAttribute("muuri-tiddler-width") ) {
-                                muuriTiddlerWidth = elem.getAttribute("muuri-tiddler-width");
-                                console.log("muuriLayoutOptionRows(right): muuriTiddlerWidth: " + muuriTiddlerWidth );
-                            }
-                        }
-                    }
-                    var colcoef = parseInt( muuriTiddlerWidth ) || 0;
-                    console.log("muuriLayoutOptionRows(right): colcoef: " + colcoef );
+                    console.log("muuriLayoutOptionRows(right): underrun! " );
+                    var colspan = self.muuriGetLogMuuriTiddlerWidthAsColSpan( item.getElement() );
+                    console.log("muuriLayoutOptionRows(right): colspan: " + colspan );
                 }
                 else {
+    				h = item.getHeight() + m.top + m.bottom;
+    				if ( rowmaxheight < h ) {
+    					rowmaxheight = h;
+                    }
                     layout.slots.push(x, y);
                 }
                 // if ( colcoef === 0 ) {
@@ -578,25 +579,40 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 			h = 0,
 			iteminarow = 0,
 			rowmaxheight = 0;
-			for(var i=0; i<items.length;i++) {
+
+            var overrun = false;
+
+			for (var i=0; i<items.length;i++) {
 				iteminarow++;
-				if(iteminarow > self.columns) {
+				if ( (iteminarow > self.columns) || overrun ) {
 					iteminarow = 1;
 					y += rowmaxheight;
 					rowmaxheight = 0;
 					x = 0;
+                    overrun = false;
 				}
 				else {
 					x += w;
 				}
-				item = items[i];
-				m = item.getMargin();
-				h = item.getHeight() + m.top + m.bottom;
-				if(rowmaxheight < h) {
-					rowmaxheight = h;
-				}
+                // w/ muuuri-tiddler-width the element may not fit the row
+                item = items[i];
+                m = item.getMargin();
 				w = item.getWidth() + m.left + m.right;
-				layout.slots.push(x, y);
+                //console.log( "width: " + width + " i: " + i + " w: " + w + " x: " + x + " x+w: " + (x+w));
+                if ( (Math.floor(x + w) > width) && (self.columns > 1) ) {
+                    overrun = true;
+                    i -= 1;
+                    console.log("muuriLayoutOptionRows(left): overrun! " );
+                    var colspan = self.muuriGetLogMuuriTiddlerWidthAsColSpan( item.getElement() );
+                    console.log("muuriLayoutOptionRows(left): colspan: " + colspan );
+                }
+                else {
+                    h = item.getHeight() + m.top + m.bottom;
+    				if(rowmaxheight < h) {
+    					rowmaxheight = h;
+    				}
+                    layout.slots.push(x, y);
+                }
 			};
             w -= x;
             h += y;
