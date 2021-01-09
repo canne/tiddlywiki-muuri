@@ -6,6 +6,7 @@ module-type: storyview
 Views the story as a muuri grid
 
 \*/
+
 (function() {
 
 /*jslint node: true, browser: true */
@@ -377,6 +378,20 @@ MuuriStoryView.prototype.createMuuriGrid = function() {
 	this.muuriOptions = this.collectMuuriOptions();
 	var domNode = this.listWidget.parentDomNode;
 	domNode.setAttribute("data-grid","muuri");
+    // Poll through all the listed tiddlers and check for the muuri-tiddler-width, then modify elements
+    for ( var i = 0; i < this.listWidget.list.length; i++ ) {
+        var listItemWidget = this.listWidget.children[ i ];
+        var targetElement = listItemWidget.findFirstDomNode();
+        if( targetElement instanceof Element ) {
+            var itemTitle = listItemWidget.parseTreeNode.itemTitle;
+            // the attribute in 'original' 0.0.1 muuri-tiddler muuri-tiddler-width
+            var tiddler = this.listWidget.wiki.getTiddler( itemTitle );
+            var muuriTiddlerWidth = "";
+            if ( tiddler )
+                muuriTiddlerWidth = tiddler.getFieldString("muuri-tiddler-width");
+            targetElement.setAttribute("muuri-tiddler-width", muuriTiddlerWidth);
+        }
+    }
 	this.muuri = new Muuri(domNode,self.muuriOptions);
 	$tw.wiki.addEventListener("change",function(changes) {
 		self.muuriRefresh(changes);
@@ -414,6 +429,20 @@ MuuriStoryView.prototype.muuriLayoutOptionDefault = function() {
 	};
 };
 
+MuuriStoryView.prototype.muuriGetLogMuuriTiddlerWidthAsColSpan = function( elem ) {
+    var self = this;
+    var muuriTiddlerWidth = "0";
+    if ( elem instanceof Element ) {
+        if ( elem.hasAttributes() ) {
+            if ( elem.hasAttribute("muuri-tiddler-width") ) {
+                muuriTiddlerWidth = elem.getAttribute("muuri-tiddler-width");
+                console.log("muuriGetLogMuuriTiddlerWidthAsColSpan: muuriTiddlerWidth: " + muuriTiddlerWidth );
+            }
+        }
+    }
+    return parseInt( muuriTiddlerWidth ) || 0;
+};
+
 MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 	var self = this;
 	if( self.alignRight ) {
@@ -426,57 +455,44 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 			};
 			var item,
 				m,
-				x = 0,
+				x = width,
 				y = 0,
 				w = 0,
 				h = 0;
 
 			var iteminarow = 0;
 			var rowmaxheight = 0;
-			var maxrowwidth = 0;
 
-			// Let's not trust the available client area, calculate the max.width
-			for (var i = 0; i < items.length; i++) {
-				iteminarow++;
-				if ( iteminarow > self.columns) {
-					iteminarow = 1;
-				if ( x > maxrowwidth )
-					maxrowwidth = x;
-					x = 0;
-			  	}
-				item = items[i];
-				m = item.getMargin();
-				h = item.getHeight() + m.top + m.bottom;
-				w = item.getWidth() + m.left + m.right;
-				x += w;
-			}
-            if ( x > maxrowwidth )
-              maxrowwidth = x;
-            else
-              x = maxrowwidth;
-			y = 0;
-			w = 0;
-			h = 0;
-			iteminarow = 0;
-			rowmaxheight = 0;
+            var underrun = false;
 
 			for (var i = 0; i < items.length; i++) {
 				iteminarow++;
-				if ( iteminarow > self.columns) {
+				if ( (iteminarow > self.columns) || underrun ) {
 					iteminarow = 1;
 					y += rowmaxheight;
 					rowmaxheight = 0;
-					x = maxrowwidth;
+					x = width;
+                    underrun = false;
 			  	}
 				item = items[i];
-				m = item.getMargin();
-				h = item.getHeight() + m.top + m.bottom;
-				if ( rowmaxheight < h ) {
-					rowmaxheight = h;
-				}
-				w = item.getWidth() + m.left + m.right;
-				x -= w;
-				layout.slots.push(x, y);
+                m = item.getMargin();
+                w = item.getWidth() + m.left + m.right;
+                x -= w;
+                // w/ muuuri-tiddler-width the element may not fit the row
+                if ( (Math.trunc(x) < 0) && (self.columns > 1) ) {
+                    underrun = true;
+                    i -= 1;
+                    console.log("muuriLayoutOptionRows(right): underrun! " );
+                    var colspan = self.muuriGetLogMuuriTiddlerWidthAsColSpan( item.getElement() );
+                    console.log("muuriLayoutOptionRows(right): colspan: " + colspan );
+                }
+                else {
+    				h = item.getHeight() + m.top + m.bottom;
+    				if ( rowmaxheight < h ) {
+    					rowmaxheight = h;
+                    }
+                    layout.slots.push(x, y);
+                }
 			}
 
 			w -= x;
@@ -508,25 +524,40 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 			h = 0,
 			iteminarow = 0,
 			rowmaxheight = 0;
-			for(var i=0; i<items.length;i++) {
+
+            var overrun = false;
+
+			for (var i=0; i<items.length;i++) {
 				iteminarow++;
-				if(iteminarow > self.columns) {
+				if ( (iteminarow > self.columns) || overrun ) {
 					iteminarow = 1;
 					y += rowmaxheight;
 					rowmaxheight = 0;
 					x = 0;
+                    overrun = false;
 				}
 				else {
 					x += w;
 				}
-				item = items[i];
-				m = item.getMargin();
-				h = item.getHeight() + m.top + m.bottom;
-				if(rowmaxheight < h) {
-					rowmaxheight = h;
-				}
+                // w/ muuuri-tiddler-width the element may not fit the row
+                item = items[i];
+                m = item.getMargin();
 				w = item.getWidth() + m.left + m.right;
-				layout.slots.push(x, y);
+                //console.log( "width: " + width + " i: " + i + " w: " + w + " x: " + x + " x+w: " + (x+w));
+                if ( (Math.floor(x + w) > width) && (self.columns > 1) ) {
+                    overrun = true;
+                    i -= 1;
+                    console.log("muuriLayoutOptionRows(left): overrun! " );
+                    var colspan = self.muuriGetLogMuuriTiddlerWidthAsColSpan( item.getElement() );
+                    console.log("muuriLayoutOptionRows(left): colspan: " + colspan );
+                }
+                else {
+                    h = item.getHeight() + m.top + m.bottom;
+    				if(rowmaxheight < h) {
+    					rowmaxheight = h;
+    				}
+                    layout.slots.push(x, y);
+                }
 			};
             w -= x;
             h += y;
@@ -732,6 +763,12 @@ MuuriStoryView.prototype.insert = function(widget) {
 		this.muuri._items.splice(index,1);
 		this.muuri.refreshItems();
 	}
+    // the attribute in 'original' 0.0.1 muuri-tiddler muuri-tiddler-width
+    var tiddler = widget.wiki.getTiddler(itemTitle);
+    var muuriTiddlerWidth = "";
+    if ( tiddler )
+        muuriTiddlerWidth = tiddler.getFieldString("muuri-tiddler-width");
+    targetElement.setAttribute("muuri-tiddler-width", muuriTiddlerWidth);
 	if(!this.isDragging) {
 		setTimeout(function(){
 			self.muuri.add(targetElement,{index: targetIndex, instant: true});

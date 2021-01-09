@@ -7,6 +7,12 @@ tags: $:/tags/Stylesheet
 	z-index: $(zIndex)$;
 }
 \end
+\define set-muuri-tiddler-width()
+.tc-story-river.tc-muuri-river > [data-tiddler-title="$(cssEscapedTitle)$"].tc-tiddler-frame {
+	width: calc((100% * <<colratio>>) - <<margin>> - (<<margin>> * <<colratio>>));
+}
+
+\end
 
 .tc-muuri-dragging {
 z-index: 1;
@@ -27,7 +33,7 @@ position: absolute;
 		.tc-story-river.tc-muuri-river {
 			min-width: calc(100% - {{$:/themes/tiddlywiki/vanilla/metrics/sidebarwidth}});
 		}
-	
+
 	</$reveal>
 
 	<$reveal state="$:/themes/tiddlywiki/vanilla/options/sidebarlayout" type="match" text="fixed-fluid">
@@ -47,6 +53,28 @@ position: absolute;
 	margin-<<marginSuffix>>: <<margin>>;
 	margin-bottom: <<marginBottom>>;
 }
+
+<$list filter="[list[$:/StoryList]has[muuri-tiddler-width]]">
+
+    <$set name="columns" value={{{ [{$:/config/muuri/storyview/columns}] }}}>
+
+        <$set name="colspan" value={{{ [<currentTiddler>get[muuri-tiddler-width]] }}}>
+
+
+            <$set name="colratio" value={{{ [<colspan>divide<columns>min[1]fixed[3]] }}}>
+		              <$set name="cssEscapedTitle" value={{{ [<currentTiddler>escapecss[]] }}}>
+
+			                       <<set-muuri-tiddler-width>>
+
+                     </$set>
+
+           </$set>
+
+        </$set>
+
+    </$set>
+
+</$list>
 
 .tc-story-river.tc-muuri-river {
 	margin-top: {{$:/config/muuri/storyview/story-river/margin-top}};
@@ -178,12 +206,12 @@ position: absolute;
 		.tc-story-river.tc-muuri-river > .tc-tiddler-frame {
 			width: calc(100% / <<count>>);
 		}
-		
+
 		.tc-story-river.tc-muuri-river {
 			margin-top: 0;
 		}
 	}
-	
+
 	@media (max-width: <<sidebarBreakPoint>>) {
 		.tc-story-river.tc-muuri-river > .tc-tiddler-frame {
 			width: calc(100% / 2);
@@ -193,9 +221,9 @@ position: absolute;
 			margin-top: 0;
 		}
 	}
-	
+
 	@media(min-width:<<sidebarBreakPoint>>) {
-	
+
 	.tc-story-river.tc-muuri-river > .tc-tiddler-frame {
 		border: none;
 		border-radius: 0px;
@@ -211,7 +239,7 @@ position: absolute;
 }
 
 	@media(max-width:<<sidebarBreakPoint>>) {
-	
+
 	.tc-story-river.tc-muuri-river > .tc-tiddler-frame {
 		border: none;
 		border-radius: 0px;
