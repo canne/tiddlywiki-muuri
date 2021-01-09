@@ -463,35 +463,6 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
 			var iteminarow = 0;
 			var rowmaxheight = 0;
 
-			// var maxrowwidth = 0;
-
-			// Let's not trust the available client area, calculate the max.width
-			// for (var i = 0; i < items.length; i++) {
-			// 	iteminarow++;
-			// 	if ( iteminarow > self.columns) {
-			// 		iteminarow = 1;
-			// 	if ( x > maxrowwidth )
-			// 		maxrowwidth = x;
-			// 		x = 0;
-			//   	}
-			// 	item = items[i];
-			// 	m = item.getMargin();
-			// 	h = item.getHeight() + m.top + m.bottom;
-			// 	w = item.getWidth() + m.left + m.right;
-			// 	x += w;
-			// }
-            // if ( x > maxrowwidth )
-            //   maxrowwidth = x;
-            // else
-            //   x = maxrowwidth;
-			// y = 0;
-			// w = 0;
-			// h = 0;
-			// iteminarow = 0;
-			// rowmaxheight = 0;
-            //
-            // console.log("muuriLayoutOptionRows(right): maxrowwidth: " + maxrowwidth );
-
             var underrun = false;
 
 			for (var i = 0; i < items.length; i++) {
@@ -522,32 +493,6 @@ MuuriStoryView.prototype.muuriLayoutOptionRows = function() {
                     }
                     layout.slots.push(x, y);
                 }
-                // if ( colcoef === 0 ) {
-    			// 	x -= w;
-    			// 	layout.slots.push(x, y);
-                // }
-                // else {
-                //     if ( colcoef === 1 ) {
-                //         if  ( i === 0 ) {
-                //             x -= w;
-            	// 			layout.slots.push(x, y);
-                //         }
-                //         else {
-                //             i--;
-                //         }
-                //         iteminarow = self.columns;
-                //     }
-                //     else {
-                //         if ( (iteminarow + colcoef) > self.columns ) {
-                //             iteminarow = self.columns;
-                //             i--;
-                //         }
-                //         else {
-                //             x -= w;
-            	// 			layout.slots.push(x, y);
-                //         }
-                //     }
-                // }
 			}
 
 			w -= x;
