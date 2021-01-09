@@ -9,7 +9,7 @@ tags: $:/tags/Stylesheet
 \end
 \define set-muuri-tiddler-width()
 .tc-story-river.tc-muuri-river > [data-tiddler-title="$(cssEscapedTitle)$"].tc-tiddler-frame {
-	width: calc((100% / <<columns>> * <<spancols>>) - <<margin>> - (<<margin>> / <<columns>> * <<spancols>>));
+	width: calc((100% * <<colratio>>) - <<margin>> - (<<margin>> * <<colratio>>));
 }
 
 \end
@@ -56,19 +56,23 @@ position: absolute;
 
 <$list filter="[list[$:/StoryList]has[muuri-tiddler-width]]">
 
-	<$set name="spancols" value={{{ [<currentTiddler>get[muuri-tiddler-width]] }}}>
+    <$set name="columns" value={{{ [{$:/config/muuri/storyview/columns}] }}}>
 
-        <$set name="columns" value={{{ [{$:/config/muuri/storyview/columns}] }}}>
+        <$set name="colspan" value={{{ [<currentTiddler>get[muuri-tiddler-width]] }}}>
 
-		      <$set name="cssEscapedTitle" value={{{ [<currentTiddler>escapecss[]] }}}>
 
-			               <<set-muuri-tiddler-width>>
+            <$set name="colratio" value={{{ [<colspan>divide<columns>min[1]fixed[3]] }}}>
+		              <$set name="cssEscapedTitle" value={{{ [<currentTiddler>escapecss[]] }}}>
 
-              </$set>
+			                       <<set-muuri-tiddler-width>>
 
-		</$set>
+                     </$set>
 
-	</$set>
+           </$set>
+
+        </$set>
+
+    </$set>
 
 </$list>
 
